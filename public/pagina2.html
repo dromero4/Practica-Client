@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="ca">
+	<head>
+		<title>Segona pàgina</title>
+		<meta charset="UTF-8" />
+		<style>
+			* {font-family: Arial,Helvetica,sans-serif; font-size:16px;}
+			h1 {font-size:2em;}
+			div,input {margin-bottom:.5em;}
+		</style>
+	</head>
+	<script src="https://code.jquery.com/jquery-3.6.3.min.js"></script>
+	<script>
+		let host;
+		
+		// Enviar petició al servidor utilitzant POST amb dades en format JSON
+		function enviarPOST(url, params) {
+			// Gestor per quan es rebi la resposta
+			function reqListener () {
+				let dades = JSON.parse(this.responseText);
+				alert("Resposta del servidor:\n" + JSON.stringify(dades));
+			}
+
+			// Gestor per si es rep un error
+			function errListener () {
+				alert("Error al fer petició al servidor");
+			}
+
+			// Crear l'objecte per fer la petició al servidor...
+			let peticio = new XMLHttpRequest();
+			// ... i assignar-li els gestors
+			peticio.addEventListener("load", reqListener);
+			peticio.addEventListener("error", errListener);
+			
+			// Configurar i fer la petició POST al servidor
+			peticio.overrideMimeType("text/plain");
+			peticio.open("POST", url, true);
+			peticio.setRequestHeader("Content-Type", "application/json");
+			peticio.send(JSON.stringify(params));
+		}
+		
+		// Gestor de l'esdeveniment 'submit' del formulari
+		function enviar(e) {
+			e.preventDefault();
+			
+			let inputs = document.getElementById('dades').querySelectorAll('input');
+			let dades = {};
+			for (let i of inputs) dades[i.id] = i.value;
+			enviarPOST('http://' + host + ':3000/dades', dades);
+
+			// POST amb jQuery
+			$.ajax({
+				url: 'http://' + host + ':3000/dades/',
+				data: JSON.stringify(dades),
+				contentType: "application/json",
+				type: "POST",
+
+				success: function (d) {
+					alert("Resposta del servidor (jQuery):\n" + JSON.stringify(d));
+				},
+
+				error: function () {
+					console.log("Error al fer la petició al servidor");
+				}
+			});
+			
+			/*
+			// fetch() amb GET
+			let params = "";
+			for (let d in dades) params += d + "=" + dades[d] + "&";
+			params = params.substring(0, params.length-1);
+			fetch('http://' + host + ':3000/dades/pagina2.html?' + params)
+				// S'hauria de configurar el servidor perquè
+				//	en comptes de tornar una pàgina, tornés dades JSON
+				// .then(response => 
+				// 	response.text()
+				// )
+				// .then(dades => {
+				// 	alert("Resposta del servidor:\n" + JSON.parse(dades));
+				// });
+			*/
+
+			// fetch() amb POST
+			fetch('http://' + host + ':3000/dades/', {method:"POST", headers: { 'Content-Type': 'application/json' }, body:JSON.stringify(dades)})
+				.then(response => 
+					// TODO: verificar response.ok o response.status
+					response.json()		// Converteix automàticament a objecte
+				)
+				.then(dades => {
+					alert("Resposta del servidor (fetch):\n" + JSON.stringify(dades));
+				})
+				.catch(error => console.log(error));
+
+			// fetch() amb async/await
+			(async function(dades) {
+				try {
+					const response = await fetch('http://' + host + ':3000/dades/', {method:"POST", headers: { 'Content-Type': 'application/json' }, body:JSON.stringify(dades)});
+					// TODO: verificar response.ok o response.status
+					dades = await response.json();
+					alert("Resposta del servidor (async/await):\n" + JSON.stringify(dades));
+				} catch(error) {
+					console.log(error);
+				}
+			})(dades);
+		}
+		
+		// Recuperar les dades passades en la URL
+		//	i posar-les en el formulari
+		function agafarParametres() {
+			let html = "";
+
+			// Obtenir els paràmetres utilitzant URLSearchParams
+			let p = new URLSearchParams(window.location.search);
+
+			// Recórrer tots els paràmetres
+			for (let e of p.entries()) {
+				html += e[0];
+				html += " <input type='text' id='" + e[0] + "' value='" + e[1] + "'><br>"
+			}
+			
+			document.getElementById("dades").innerHTML = html;
+		}
+		
+		// Detectar domini,
+		//	assignar un gestor per enviar formulari
+		//	i agafar paràmetres de la URL 
+		function init() {
+			if (window.location.protocol == "file:") host = "localhost";
+			else host = window.location.hostname;
+			
+			document.querySelector('form').addEventListener('submit', enviar);
+			
+			agafarParametres();
+		}
+		
+		window.onload = init;
+	</script>
+	<body>
+		<h1>Segona pàgina</h1>
+		<form>
+			<div id="dades"></div>
+			<input type="submit">
+		</form>
+		<p><a href="index.html">Tornar a la pàgina principal</a></p>
+	</body>
+</html>
