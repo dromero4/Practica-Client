@@ -2,8 +2,6 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-import { encriptar } from './encriptar.js';
-import { guardar, restaurar, leerImagenBase64, listarArchivos } from './dibujar.js';
 import fs from 'fs';
 import formidable from 'formidable';
 import cors from 'cors';
