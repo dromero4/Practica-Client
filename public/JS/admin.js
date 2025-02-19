@@ -30,8 +30,6 @@ function connectWebSocket() {
                     document.getElementById("pisos").value = data.pisos;
                 } else if (data.type === "estat_joc") {
                     document.getElementById("startStopBtn").innerText = data.running ? "Aturar" : "Engegar";
-                } else {
-                    console.log("ℹ️ Altres dades:", data);
                 }
             } catch (error) {
                 console.warn("⚠️ Missatge no JSON:", event.data);
