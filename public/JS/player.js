@@ -26,7 +26,7 @@ socket.onmessage = (event) => {
 };
 
 function drawBoard(width, height, pisos) {
-  const boardElement = document.getElementById('gameBoard');
+  const boardElement = document.getElementById('gameCanvas');
   // Limpiar el contenido anterior
   boardElement.innerHTML = '';
 
