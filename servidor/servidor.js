@@ -190,6 +190,18 @@ app.post("/configurar", (req, res) => {
   res.json({ message: "Configuració rebuda!", configuracionJoc });
 });
 
+app.post('/joc', (req, res) => {
+  let joc = req.body.action;
+
+  if (joc == "engegar") {
+    broadcast(JSON.stringify({ type: "estat_joc", running: true }));
+  } else if (joc == "aturar") {
+    broadcast(JSON.stringify({ type: "estat_joc", running: false }));
+  } else {
+    return res.status(400).json({ error: "Acció no vàlida." });
+  };
+});
+
 // Iniciar el servidor
 app.listen(PORT, () => {
   console.log(`Servidor responent en http://localhost:${PORT}`);
