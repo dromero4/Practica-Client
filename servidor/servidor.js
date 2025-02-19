@@ -9,7 +9,7 @@ import cors from 'cors';
 import WebSocket, { WebSocketServer } from 'ws';
 
 // Crear servidor WebSockets i escoltar en el port 8180
-const wsServer = new WebSocketServer({ port: 8180 })
+const wsServer = new WebSocketServer({ port: 8180 });
 console.log("Servidor WebSocket escoltant en http://localhost:8180");
 // Enviar missatge a tothom excepte a 'clientExclos'
 //	(si no s'especifica qui és el 'clientExclos', s'envia a tots els clients)
@@ -143,6 +143,14 @@ app.post('/joc', (req, res) => {
   } else {
     return res.status(400).json({ error: "Acció no vàlida." });
   };
+});
+
+app.post('/coord', (req, res) => {
+  let { x, y } = req.body.type;
+  console.log("Coordenades rebudes:", { x, y });
+
+  broadcast(JSON.stringify({ type: "coord", x, y }));
+  console.log("Coordenades enviades a tots els clients.");
 });
 
 // Iniciar el servidor
