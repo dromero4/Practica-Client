@@ -20,22 +20,28 @@ function broadcast(missatge, clientExclos) {
   });
 }
 // Al rebre un nou client (nova connexió)
-wsServer.on('connection', (client, peticio) => {
-  // Guardar identificador (IP i Port) del nou client
-  let id = peticio.socket.remoteAddress + ":" + peticio.socket.remotePort;
-  // Enviar salutació al nou client
-  //	i avisar a tots els altres que s'ha afegit un nou client
-  client.send(`Benvingut <strong>${id}</strong>`);
-  broadcast(`Nou client afegit: ${id}`, client);
-  console.log(`Benvingut ${id}`);
-  console.log(`Nou client afegit: ${id}`);
-  // Al rebre un missatge d'aques client
-  //	reenviar-lo a tothom (inclòs ell mateix)
-  client.on('message', missatge => {
-    broadcast(`<strong>${id}: </strong>${missatge}`);
-    console.log(`Missatge de ${id} --> ${missatge}`);
-  });
+wsServer.on("connection", (client, peticio) => {
+    // Guardar identificador (IP i Port) del nou client
+    let id = peticio.socket.remoteAddress + ":" + peticio.socket.remotePort;
+
+    // Enviar salutació en format JSON
+    client.send(JSON.stringify({ type: "benvinguda", message: `Benvingut ${id}` }));
+
+    // Avisar a tots els altres que s'ha afegit un nou client
+    broadcast(JSON.stringify({ type: "nou_client", message: `Nou client afegit: ${id}` }), client);
+
+    console.log(`Benvingut ${id}`);
+    console.log(`Nou client afegit: ${id}`);
+
+    // Al rebre un missatge d'aquest client
+    client.on("message", missatge => {
+        console.log(`Missatge de ${id} --> ${missatge}`);
+
+        // Enviar el missatge a tots en format JSON
+        broadcast(JSON.stringify({ type: "missatge", id: id, message: missatge }));
+    });
 });
+
 /******************************************************************************
 *						SERVIDOR WEB (port 8080)
 ******************************************************************************/
@@ -102,6 +108,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 //	i el motor que s'utilitzarà per generar les pàgines html
 app.set('views', path.join(__dirname, '../plantilles'));
 app.set('view engine', 'ejs');
+
 // // Ruta d'inici (http://localhost:3000)
 // app.get('/', (req, res) => {
 //     res.sendFile(path.join(__dirname, '../public', 'index.html'));
@@ -146,50 +153,8 @@ app.post('/dades', (req, res) => {
     if (!accion || !text) {
         return res.status(400).json({ error: "Faltan datos en la petición" });
     }
-    switch (accion) {
-        case 'encriptar':
-        case 'desencriptar':
-            text = encriptar(accion, text);
-            res.json({ accion: accion, texto: text });
-            break;
-        case 'guardar':
-            const textoComoString = JSON.stringify(text);
-            guardar('dibujo.txt', textoComoString);
-            res.json({ accion: accion, texto: text });
-            break;
-        case 'restaurar':
-            const contenido = restaurar('dibujo.txt');
-            text = JSON.parse(contenido);
-            res.json({ accion: accion, texto: text });
-            break;
-        case 'guardarCanva':
-            let rutaYNombre = './servidor/imagenesCanva/' + nombre + '.txt';
-            // console.log(rutaYNombre);
-            guardar(rutaYNombre, text);
-            res.json({ accion: accion, texto: text });
-            break;
-        case 'restaurarImagenBase64':
-            const rutaCarpeta = './servidor/imagenesCanva/';
-            // Obtener lista de archivos
-            const archivos = listarArchivos(rutaCarpeta);
-            if (archivos.length === 0) {
-                res.json({ error: "No hay imágenes disponibles" });
-                break;
-            }
-            // Aquí seleccionas el primer archivo o envías la lista al frontend
-            const nombreArchivo = archivos[0]; // Puedes cambiarlo por otro método de selección
-            // Leer la imagen en Base64
-            const contenido1 = leerImagenBase64(rutaCarpeta, nombreArchivo);
-            if (!contenido1) {
-                res.json({ error: "Error al leer la imagen" });
-                break;
-            }
-            console.log(contenido1);
-            res.json({ accion: accio, texto: contenido1 });
-            break;
-        default:
-        // console.log("llega aqui");
-    }
+    
+    
 });
 // Para el formulario:
 app.post('/upload', (req, res) => {
@@ -204,6 +169,27 @@ app.post('/upload', (req, res) => {
     res.send('Archivo recibido correctamente');
   });
 });
+
+app.post("/configurar", (req, res) => {
+    let configuracionJoc;
+    const { width, height, pisos } = req.body;
+    if (!width || !height || !pisos) {
+        return res.status(400).json({ error: "Falten paràmetres." });
+    }
+
+    configuracionJoc = { width, height, pisos };
+    console.log("Nova configuració:", configuracionJoc);
+
+    // Enviar configuración a todos los clientes WebSocket
+    // wss.clients.forEach(client => {
+    //     if (client.readyState === 1) { // Verifica si el cliente está abierto
+    //         client.send(JSON.stringify({ type: "configuració", ...configuracionJoc }));
+    //     }
+    // });
+
+    res.json({ message: "Configuració rebuda!", configuracionJoc });
+});
+
 // Iniciar el servidor
 app.listen(PORT, () => {
     console.log(`Servidor responent en http://localhost:${PORT}`);
