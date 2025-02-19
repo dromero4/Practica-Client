@@ -7,6 +7,7 @@ import fs from 'fs';
 import formidable from 'formidable';
 import cors from 'cors';
 import WebSocket, { WebSocketServer } from 'ws';
+
 // Crear servidor WebSockets i escoltar en el port 8180
 const wsServer = new WebSocketServer({ port: 8180 })
 console.log("Servidor WebSocket escoltant en http://localhost:8180");
@@ -19,25 +20,24 @@ function broadcast(missatge, clientExclos) {
     }
   });
 }
+
+let ultimaConfiguracio = null;
 // Al rebre un nou client (nova connexió)
 wsServer.on("connection", (client, peticio) => {
-  // Guardar identificador (IP i Port) del nou client
   let id = peticio.socket.remoteAddress + ":" + peticio.socket.remotePort;
-
-  // Enviar salutació en format JSON
   client.send(JSON.stringify({ type: "benvinguda", message: `Benvingut ${id}` }));
-
-  // Avisar a tots els altres que s'ha afegit un nou client
   broadcast(JSON.stringify({ type: "nou_client", message: `Nou client afegit: ${id}` }), client);
 
   console.log(`Benvingut ${id}`);
   console.log(`Nou client afegit: ${id}`);
 
-  // Al rebre un missatge d'aquest client
+  // Si hay una configuración guardada, enviarla al nuevo cliente
+  if (ultimaConfiguracio) {
+    client.send(JSON.stringify({ type: "configuració", ...ultimaConfiguracio }));
+  }
+
   client.on("message", missatge => {
     console.log(`Missatge de ${id} --> ${missatge}`);
-
-    // Enviar el missatge a tots en format JSON
     broadcast(JSON.stringify({ type: "missatge", id: id, message: missatge }));
   });
 });
@@ -171,23 +171,22 @@ app.post('/upload', (req, res) => {
 });
 
 app.post("/configurar", (req, res) => {
-  let configuracionJoc;
   const { width, height, pisos } = req.body;
   if (!width || !height || !pisos) {
     return res.status(400).json({ error: "Falten paràmetres." });
   }
 
-  configuracionJoc = { width, height, pisos };
-  console.log("Nova configuració:", configuracionJoc);
+  ultimaConfiguracio = { width, height, pisos };
+  console.log("Nova configuració:", ultimaConfiguracio);
 
   // Enviar configuración a todos los clientes WebSocket
   wsServer.clients.forEach(client => {
     if (client.readyState === 1) { // Verifica si el cliente está abierto
-      client.send(JSON.stringify({ type: "configuració", ...configuracionJoc }));
+      client.send(JSON.stringify({ type: "configuració", ...ultimaConfiguracio }));
     }
   });
 
-  res.json({ message: "Configuració rebuda!", configuracionJoc });
+  res.json({ message: "Configuració rebuda!", ultimaConfiguracion: ultimaConfiguracio });
 });
 
 app.post('/joc', (req, res) => {
