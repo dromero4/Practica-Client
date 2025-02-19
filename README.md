@@ -20,27 +20,27 @@ En qualsevol cas, abans poder accedir a qualsevol joc, cal autenticar l'usuari a
  
 
 Administrador
-Després de carregar la pàgina admin.html, s'ha d'establir una connexió WebSocket amb el servidor en el port 8180.
-Quan s'estableixi la connexió (onopen), ha d'enviar un missatge al servidor indicant que es vol administrar el joc.
+OK Després de carregar la pàgina admin.html, s'ha d'establir una connexió WebSocket amb el servidor en el port 8180.
+OK Quan s'estableixi la connexió (onopen), ha d'enviar un missatge al servidor indicant que es vol administrar el joc.
 
-En cas que es tanqui la connexió (onclose) o que es produeixi algun error (onerror), s'ha de mostrar el missatge amb alert() i tornar a la pàgina principal (index.html).
+FAIL En cas que es tanqui la connexió (onclose) o que es produeixi algun error (onerror), s'ha de mostrar el missatge amb alert() i tornar a la pàgina principal (index.html).
 
 Ha de gestionar els missatges que rebi del servidor (onmessage), que poden ser:
 
-un missatge de text: ha de mostrar el missatge per consola.
-la configuració del joc: ha d'actualitzar la configuració.
-actualitzar els valors que apareixen en el formulari de configuració (inputs "width", "height" i "pisos").
-actualitzar els paràmetres del joc cridant.
-posar en marxa el joc: canviar el text del botó Engengar per Aturar.
-aturar el joc: canviar el text del botó Aturar per Engengar.
-dibuixar els elements del joc.
+OK un missatge de text: ha de mostrar el missatge per consola.
+OK la configuració del joc: ha d'actualitzar la configuració.
+OK actualitzar els valors que apareixen en el formulari de configuració (inputs "width", "height" i "pisos").
+OK actualitzar els paràmetres del joc cridant.
+OK posar en marxa el joc: canviar el text del botó Engengar per Aturar.
+OK aturar el joc: canviar el text del botó Aturar per Engengar.
+OK dibuixar els elements del joc.
  
 
 Jugador
-Després de carregar la pàgina player.html, s'ha d'establir una connexió WebSocket amb el servidor en el port 8180.
-Quan s'estableixi la connexió (onopen), ha d'enviar un missatge al servidor indicant que es vol afegir un jugador.
+OK Després de carregar la pàgina player.html, s'ha d'establir una connexió WebSocket amb el servidor en el port 8180.
+OK Quan s'estableixi la connexió (onopen), ha d'enviar un missatge al servidor indicant que es vol afegir un jugador.
 
-En cas que es tanqui la connexió (onclose) o que es produeixi algun error (onerror), s'ha de mostrar el missatge amb alert() i tornar a la pàgina principal (index.html), que s'ha obrir en la mateixa pestanya.
+FAIL En cas que es tanqui la connexió (onclose) o que es produeixi algun error (onerror), s'ha de mostrar el missatge amb alert() i tornar a la pàgina principal (index.html), que s'ha obrir en la mateixa pestanya.
 
 Ha de gestionar els missatges que rebi del servidor (onmessage), que poden ser:
 
@@ -69,17 +69,17 @@ S'ha de programar un servidor WebSockets que escolti el port 8180 i que gestioni
 
 Quan rebi una sol·licitud de connexió (connection), l'ha de crear, enviar un missatge amb la configuració del joc i gestionar els següents esdeveniments:
 
-detectar si el client ha tancat la connexió (close): mostrar el missatge per consola indicant quin jugador (o administrador) s'ha desconnectat.
-processar els missatges que li enviï el client (message):
-administrar el joc: enviat al obrir la pàgina admin.html.
-configurar el joc: enviat al clicar el botó Configurar de la pàgina admin.html.
-engegar o aturar: enviat al clicar el botó Engegar/Aturar de la pàgina admin.html.
-afegir un jugador: enviat al obrir la pàgina player.html.
-agafar, deixar o canviar direcció: enviat al prémer les tecles en la pàgina player.html.
+FAIL detectar si el client ha tancat la connexió (close): mostrar el missatge per consola indicant quin jugador (o administrador) s'ha desconnectat.
+OK processar els missatges que li enviï el client (message):
+OK administrar el joc: enviat al obrir la pàgina admin.html.
+OK configurar el joc: enviat al clicar el botó Configurar de la pàgina admin.html.
+FAIL engegar o aturar: enviat al clicar el botó Engegar/Aturar de la pàgina admin.html.
+OK afegir un jugador: enviat al obrir la pàgina player.html.
+FAILagafar, deixar o canviar direcció: enviat al prémer les tecles en la pàgina player.html.
 També ha de generar un esdeveniment periòdic per moure els jugadors, afegir pedres...
 
-Els jugadors no s'han de poder superposar ni sortir de l'àrea de joc.
-Si dos jugador xoquen, no han de poder avançar.
+FAIL Els jugadors no s'han de poder superposar ni sortir de l'àrea de joc.
+FAIL Si dos jugador xoquen, no han de poder avançar.
 
-Si un jugador deixa anar la pedra en la zona de construcció, s'afegeix a la piràmide.
-Un jugador no li pot treure la pedra a un altre ni treure-les de la piràmide
+FAIL Si un jugador deixa anar la pedra en la zona de construcció, s'afegeix a la piràmide.
+FAIL Un jugador no li pot treure la pedra a un altre ni treure-les de la piràmide

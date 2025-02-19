@@ -86,8 +86,9 @@ function iniciarAturarJoc() {
 document.addEventListener("DOMContentLoaded", () => {
     // Connexio automatica web socket
     connectWebSocket();
-    document.getElementById("configurarBtn").addEventListener("click", enviarConfiguracio);
     document.getElementById("startStopBtn").addEventListener("click", iniciarAturarJoc);
+    document.getElementById("configurarBtn").addEventListener("click", enviarConfiguracio);
+
 
     // Crear el recuadro
     const widthInput = document.getElementById("width");
