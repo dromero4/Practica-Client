@@ -171,24 +171,20 @@ app.post('/upload', (req, res) => {
 });
 
 app.post("/configurar", (req, res) => {
-  let configuracionJoc;
   const { width, height, pisos } = req.body;
   if (!width || !height || !pisos) {
     return res.status(400).json({ error: "Falten paràmetres." });
   }
 
-  configuracionJoc = { width, height, pisos };
+  const configuracionJoc = { width, height, pisos };
   console.log("Nova configuració:", configuracionJoc);
 
-  // Enviar configuración a todos los clientes WebSocket
-  // wss.clients.forEach(client => {
-  //     if (client.readyState === 1) { // Verifica si el cliente está abierto
-  //         client.send(JSON.stringify({ type: "configuració", ...configuracionJoc }));
-  //     }
-  // });
+  const mensaje = JSON.stringify({ type: "configuració", ...configuracionJoc });
+  broadcast(mensaje);
 
   res.json({ message: "Configuració rebuda!", configuracionJoc });
 });
+
 
 // Iniciar el servidor
 app.listen(PORT, () => {

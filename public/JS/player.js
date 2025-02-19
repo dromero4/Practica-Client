@@ -1,24 +1,38 @@
-// Crear la conexión al servidor WebSocket en el puerto 8180
+// Crear la conexión con el servidor WebSocket
 const socket = new WebSocket('ws://localhost:8180');
 
-// Cuando se establece la conexión, enviar el mensaje para añadir jugador
+// Enviar el mensaje para añadir jugador cuando se abra la conexión
 socket.onopen = () => {
   socket.send('afegir jugador');
 };
 
-// Manejar mensajes recibidos desde el servidor
+// Recibir y procesar los mensajes enviados por el servidor
 socket.onmessage = (event) => {
-  console.log('Mensaje del servidor:', event.data);
-  // Aquí puedes procesar la configuración del juego u otras instrucciones
+  try {
+    // Convertir la cadena JSON a objeto
+    const data = JSON.parse(event.data);
+    if (data.type === "configuració") {
+      // Actualizar la configuración en la interfaz, por ejemplo:
+      document.getElementById('width').value = data.width;
+      document.getElementById('height').value = data.height;
+      document.getElementById('pisos').value = data.pisos;
+      console.log("Configuración del juego actualizada:", data);
+    } else {
+      // Procesar otros tipos de mensajes
+      console.log("Mensaje recibido:", data);
+    }
+  } catch (error) {
+    console.error("Error al procesar el mensaje:", error);
+  }
 };
 
-// En caso de error, mostrar alerta y redirigir a index.html
+// Gestionar errores de conexión
 socket.onerror = (error) => {
   alert('Error en la conexión: ' + error);
   window.location.href = 'index.html';
 };
 
-// Si se cierra la conexión, mostrar alerta y redirigir a index.html
+// Gestionar el cierre de la conexión
 socket.onclose = () => {
   alert('La conexión se ha cerrado.');
   window.location.href = 'index.html';
