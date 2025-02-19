@@ -146,10 +146,11 @@ app.post('/joc', (req, res) => {
 });
 
 app.post('/coord', (req, res) => {
+  //generar las coordenadas aleatorias dentro del endpoint /coord
   let { x, y } = req.body.type;
   console.log("Coordenades rebudes:", { x, y });
 
-  broadcast(JSON.stringify({ type: "coord", x, y }));
+  wsServer.send(JSON.stringify({ type: "coord", x, y }));
   console.log("Coordenades enviades a tots els clients.");
 });
 
