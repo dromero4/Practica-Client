@@ -20,7 +20,7 @@ function connectWebSocket() {
 
         socket.addEventListener("message", function (event) {
             console.log("📩 Missatge rebut:", event.data);
-            
+
             try {
                 let data = JSON.parse(event.data);
 
@@ -50,20 +50,20 @@ function enviarConfiguracio() {
     let height = document.getElementById("height").value;
     let pisos = document.getElementById("pisos").value;
 
-    fetch("http://localhost:3000/configurar", {
+    fetch("http://localhost:8081/configurar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ width, height, pisos })
     })
-    .then(response => response.json())
-    .then(data => {
-        alert("✅ Configuració enviada correctament!");
-        console.log("📩 Resposta del servidor:", data);
-    })
-    .catch(error => {
-        alert("❌ Error en enviar la configuració.");
-        console.error("Error:", error);
-    });
+        .then(response => response.json())
+        .then(data => {
+            alert("✅ Configuració enviada correctament!");
+            console.log("📩 Resposta del servidor:", data);
+        })
+        .catch(error => {
+            alert("❌ Error en enviar la configuració.");
+            console.error("Error:", error);
+        });
 }
 
 function iniciarAturarJoc() {
@@ -72,20 +72,20 @@ function iniciarAturarJoc() {
     let btn = document.getElementById("startStopBtn");
     let accio = btn.innerText === "Engegar" ? "engegar" : "aturar";
 
-    fetch("http://localhost:8080/joc", {
+    fetch("http://localhost:8081/joc", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: accio })
     })
-    .then(response => response.json())
-    .then(data => {
-        btn.innerText = accio === "engegar" ? "Aturar" : "Engegar";
-        alert(`✅ Joc ${accio === "engegar" ? "iniciat" : "aturat"} correctament!`);
-    })
-    .catch(error => {
-        alert("❌ Error en canviar l'estat del joc.");
-        console.error("Error:", error);
-    });
+        .then(response => response.json())
+        .then(data => {
+            btn.innerText = accio === "engegar" ? "Aturar" : "Engegar";
+            alert(`✅ Joc ${accio === "engegar" ? "iniciat" : "aturat"} correctament!`);
+        })
+        .catch(error => {
+            alert("❌ Error en canviar l'estat del joc.");
+            console.error("Error:", error);
+        });
 }
 
 document.addEventListener("DOMContentLoaded", function () {

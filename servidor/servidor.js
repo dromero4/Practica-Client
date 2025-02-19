@@ -6,9 +6,9 @@ import { dirname } from 'path';
 import fs from 'fs';
 import formidable from 'formidable';
 import cors from 'cors';
-import WebSocket, {WebSocketServer} from 'ws';
+import WebSocket, { WebSocketServer } from 'ws';
 // Crear servidor WebSockets i escoltar en el port 8180
-const wsServer = new WebSocketServer({ port:8180 })
+const wsServer = new WebSocketServer({ port: 8180 })
 console.log("Servidor WebSocket escoltant en http://localhost:8180");
 // Enviar missatge a tothom excepte a 'clientExclos'
 //	(si no s'especifica qui és el 'clientExclos', s'envia a tots els clients)
@@ -21,25 +21,25 @@ function broadcast(missatge, clientExclos) {
 }
 // Al rebre un nou client (nova connexió)
 wsServer.on("connection", (client, peticio) => {
-    // Guardar identificador (IP i Port) del nou client
-    let id = peticio.socket.remoteAddress + ":" + peticio.socket.remotePort;
+  // Guardar identificador (IP i Port) del nou client
+  let id = peticio.socket.remoteAddress + ":" + peticio.socket.remotePort;
 
-    // Enviar salutació en format JSON
-    client.send(JSON.stringify({ type: "benvinguda", message: `Benvingut ${id}` }));
+  // Enviar salutació en format JSON
+  client.send(JSON.stringify({ type: "benvinguda", message: `Benvingut ${id}` }));
 
-    // Avisar a tots els altres que s'ha afegit un nou client
-    broadcast(JSON.stringify({ type: "nou_client", message: `Nou client afegit: ${id}` }), client);
+  // Avisar a tots els altres que s'ha afegit un nou client
+  broadcast(JSON.stringify({ type: "nou_client", message: `Nou client afegit: ${id}` }), client);
 
-    console.log(`Benvingut ${id}`);
-    console.log(`Nou client afegit: ${id}`);
+  console.log(`Benvingut ${id}`);
+  console.log(`Nou client afegit: ${id}`);
 
-    // Al rebre un missatge d'aquest client
-    client.on("message", missatge => {
-        console.log(`Missatge de ${id} --> ${missatge}`);
+  // Al rebre un missatge d'aquest client
+  client.on("message", missatge => {
+    console.log(`Missatge de ${id} --> ${missatge}`);
 
-        // Enviar el missatge a tots en format JSON
-        broadcast(JSON.stringify({ type: "missatge", id: id, message: missatge }));
-    });
+    // Enviar el missatge a tots en format JSON
+    broadcast(JSON.stringify({ type: "missatge", id: id, message: missatge }));
+  });
 });
 
 /******************************************************************************
@@ -51,7 +51,7 @@ import { existsSync, readFile } from 'fs';
 function header(resposta, codi, cType) {
   resposta.setHeader('Access-Control-Allow-Origin', '*');
   resposta.setHeader('Access-Control-Allow-Methods', 'GET');
-  if (cType) resposta.writeHead(codi, {'Content-Type': cType});
+  if (cType) resposta.writeHead(codi, { 'Content-Type': cType });
   else resposta.writeHead(codi);
 }
 function enviarArxiu(resposta, dades, filename, cType, err) {
@@ -66,12 +66,12 @@ function enviarArxiu(resposta, dades, filename, cType, err) {
 }
 function onRequest(peticio, resposta) {
   let cosPeticio = "";
-  peticio.on('error', function(err) {
+  peticio.on('error', function (err) {
     console.error(err);
-  }).on('data', function(dades) {
+  }).on('data', function (dades) {
     cosPeticio += dades;
-  }).on('end', function() {
-    resposta.on('error', function(err) {
+  }).on('end', function () {
+    resposta.on('error', function (err) {
       console.error(err);
     });
     if (peticio.method == 'GET') {
@@ -79,9 +79,9 @@ function onRequest(peticio, resposta) {
       let filename = "." + q.pathname;
       if (filename == "./") filename += "index.html";
       if (existsSync(filename)) {
-        readFile(filename, function(err, dades) {
+        readFile(filename, function (err, dades) {
           enviarArxiu(resposta, dades, filename, undefined, err);
-          });
+        });
       }
       else {
         header(resposta, 404, 'text/html');
@@ -92,14 +92,14 @@ function onRequest(peticio, resposta) {
 }
 let server = createServer();
 server.on('request', onRequest);
-server.listen(8080);	
+server.listen(8080);
 console.log("Servidor escoltant en http://localhost:8080");
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const IMAGES_FOLDER = path.join(__dirname, 'imagenesCanva');
 const app = express();
 app.use(cors());
-const PORT = 3000;
+const PORT = 8081;
 // Middleware per convetir JSON
 app.use(express.json());
 // Servir arxius estàtics des de la carpeta 'public'
@@ -118,48 +118,48 @@ app.set('view engine', 'ejs');
 //     res.send(`¡Hola, ${req.params.nom}!`);
 // });
 app.get('/list-files', (req, res) => {
-    fs.readdir(IMAGES_FOLDER, (err, files) => {
-      if (err) {
-        return res.status(500).json({ error: err.toString() });
-      }
-      
-      // Leer cada archivo .txt y devolver un array con { filename, content }
-      const result = files.map(fileName => {
-        const fullPath = path.join(IMAGES_FOLDER, fileName);
-        const base64Content = fs.readFileSync(fullPath, 'utf8'); 
-        // Si en tu caso NO incluyes el prefijo en el .txt, deberías añadirlo aquí:
-        // const base64Content = 'data:image/png;base64,' + fs.readFileSync(fullPath, 'utf8');
-        
-        return {
-          fileName,
-          content: base64Content
-        };
-      });
-      
-      res.json(result);
-    });
-  });
-app.get('/imagenesCanva/:fileName', (req, res) => {
-    const filePath = path.join(IMAGES_FOLDER, req.params.fileName);
-    if (!fs.existsSync(filePath)) {
-        return res.status(404).send('Archivo no encontrado');
+  fs.readdir(IMAGES_FOLDER, (err, files) => {
+    if (err) {
+      return res.status(500).json({ error: err.toString() });
     }
-    res.sendFile(filePath);
+
+    // Leer cada archivo .txt y devolver un array con { filename, content }
+    const result = files.map(fileName => {
+      const fullPath = path.join(IMAGES_FOLDER, fileName);
+      const base64Content = fs.readFileSync(fullPath, 'utf8');
+      // Si en tu caso NO incluyes el prefijo en el .txt, deberías añadirlo aquí:
+      // const base64Content = 'data:image/png;base64,' + fs.readFileSync(fullPath, 'utf8');
+
+      return {
+        fileName,
+        content: base64Content
+      };
+    });
+
+    res.json(result);
+  });
+});
+app.get('/imagenesCanva/:fileName', (req, res) => {
+  const filePath = path.join(IMAGES_FOLDER, req.params.fileName);
+  if (!fs.existsSync(filePath)) {
+    return res.status(404).send('Archivo no encontrado');
+  }
+  res.sendFile(filePath);
 });
 
 app.post('/dades', (req, res) => {
-    console.log("Cuerpo de la petición recibida:", req.body); // Debug
-    let { nombre, accion, text } = req.body; // Extrae los valores
-    if (!accion || !text) {
-        return res.status(400).json({ error: "Faltan datos en la petición" });
-    }
-    
-    
+  console.log("Cuerpo de la petición recibida:", req.body); // Debug
+  let { nombre, accion, text } = req.body; // Extrae los valores
+  if (!accion || !text) {
+    return res.status(400).json({ error: "Faltan datos en la petición" });
+  }
+
+
 });
 // Para el formulario:
 app.post('/upload', (req, res) => {
-    const form = formidable();  // Sin 'new'
-  
+  const form = formidable();  // Sin 'new'
+
   form.parse(req, (err, fields, files) => {
     if (err) {
       return res.status(500).send('Error procesando el formulario');
@@ -171,26 +171,26 @@ app.post('/upload', (req, res) => {
 });
 
 app.post("/configurar", (req, res) => {
-    let configuracionJoc;
-    const { width, height, pisos } = req.body;
-    if (!width || !height || !pisos) {
-        return res.status(400).json({ error: "Falten paràmetres." });
-    }
+  let configuracionJoc;
+  const { width, height, pisos } = req.body;
+  if (!width || !height || !pisos) {
+    return res.status(400).json({ error: "Falten paràmetres." });
+  }
 
-    configuracionJoc = { width, height, pisos };
-    console.log("Nova configuració:", configuracionJoc);
+  configuracionJoc = { width, height, pisos };
+  console.log("Nova configuració:", configuracionJoc);
 
-    // Enviar configuración a todos los clientes WebSocket
-    // wss.clients.forEach(client => {
-    //     if (client.readyState === 1) { // Verifica si el cliente está abierto
-    //         client.send(JSON.stringify({ type: "configuració", ...configuracionJoc }));
-    //     }
-    // });
+  // Enviar configuración a todos los clientes WebSocket
+  // wss.clients.forEach(client => {
+  //     if (client.readyState === 1) { // Verifica si el cliente está abierto
+  //         client.send(JSON.stringify({ type: "configuració", ...configuracionJoc }));
+  //     }
+  // });
 
-    res.json({ message: "Configuració rebuda!", configuracionJoc });
+  res.json({ message: "Configuració rebuda!", configuracionJoc });
 });
 
 // Iniciar el servidor
 app.listen(PORT, () => {
-    console.log(`Servidor responent en http://localhost:${PORT}`);
+  console.log(`Servidor responent en http://localhost:${PORT}`);
 });
