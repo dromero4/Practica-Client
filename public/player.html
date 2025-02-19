@@ -21,6 +21,14 @@
     .config {
       margin: 10px;
     }
+    .config label {
+      margin-right: 5px;
+    }
+    .config input {
+      width: 60px;
+      text-align: center;
+      margin-right: 15px;
+    }
   </style>
 </head>
 <body>
@@ -29,13 +37,17 @@
   <!-- Canvas donde se dibujarán los elementos del juego -->
   <canvas id="gameCanvas" width="800" height="600"></canvas>
   
-  <!-- Sección para mostrar la configuración (en este caso, el número de pisos) -->
+  <!-- Sección para mostrar la configuración: ancho, alto y número de pisos -->
   <div class="config">
+    <label for="width">Ancho:</label>
+    <input type="number" id="width" readonly>
+    <label for="height">Alto:</label>
+    <input type="number" id="height" readonly>
     <label for="pisos">Número de pisos:</label>
     <input type="number" id="pisos" readonly>
   </div>
   
   <!-- Se incluye el script player.js que gestiona la conexión WebSocket y la lógica del jugador -->
-  <script src="player.js"></script>
+  <script src="./JS/player.js"></script>
 </body>
 </html>
