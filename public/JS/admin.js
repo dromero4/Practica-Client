@@ -41,7 +41,6 @@ function connectWebSocket() {
 }
 
 function enviarConfiguracio() {
-    connectWebSocket(); // 🔹 Conectamos WebSocket solo si es necesario
     if (socket && socket.readyState === WebSocket.OPEN) {
         socket.send(JSON.stringify({ action: "administrar" }));
     }
@@ -88,15 +87,16 @@ function iniciarAturarJoc() {
         });
 }
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", () => {
+    // Connexio automatica web socket
+    connectWebSocket();
     document.getElementById("configurarBtn").addEventListener("click", enviarConfiguracio);
     document.getElementById("startStopBtn").addEventListener("click", iniciarAturarJoc);
-});
-document.addEventListener("DOMContentLoaded", () => {
+
+    // Crear el recuadro
     const widthInput = document.getElementById("width");
     const heightInput = document.getElementById("height");
 
-    // Crear el recuadro
     const previewBox = document.createElement("div");
     previewBox.style.position = "relative";
     previewBox.style.backgroundColor = "lightblue";
