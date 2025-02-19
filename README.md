@@ -23,9 +23,9 @@ Administrador
 OK Després de carregar la pàgina admin.html, s'ha d'establir una connexió WebSocket amb el servidor en el port 8180.
 OK Quan s'estableixi la connexió (onopen), ha d'enviar un missatge al servidor indicant que es vol administrar el joc.
 
-FAIL En cas que es tanqui la connexió (onclose) o que es produeixi algun error (onerror), s'ha de mostrar el missatge amb alert() i tornar a la pàgina principal (index.html).
+OK En cas que es tanqui la connexió (onclose) o que es produeixi algun error (onerror), s'ha de mostrar el missatge amb alert() i tornar a la pàgina principal (index.html).
 
-Ha de gestionar els missatges que rebi del servidor (onmessage), que poden ser:
+OK Ha de gestionar els missatges que rebi del servidor (onmessage), que poden ser:
 
 OK un missatge de text: ha de mostrar el missatge per consola.
 OK la configuració del joc: ha d'actualitzar la configuració.
@@ -44,13 +44,13 @@ FAIL En cas que es tanqui la connexió (onclose) o que es produeixi algun error 
 
 Ha de gestionar els missatges que rebi del servidor (onmessage), que poden ser:
 
-un missatge de text: ha de mostrar el missatge per consola.
-la configuració del joc: ha d'actualitzar la configuració.
-actualitzar el valor dels pisos que ha de tenir la piràmide (input "pisos").
-actualitzar els paràmetres del joc.
-connectat: ha de guardar l'identificador que li envia el servidor.
-dibuixar els elements del joc.
-També ha d'afegir el gestor per l'esdeveniment keydown.
+OK un missatge de text: ha de mostrar el missatge per consola.
+OK la configuració del joc: ha d'actualitzar la configuració.
+OK actualitzar el valor dels pisos que ha de tenir la piràmide (input "pisos").
+OK actualitzar els paràmetres del joc.
+FAIL connectat: ha de guardar l'identificador que li envia el servidor.
+FAIL dibuixar els elements del joc.
+FAIL També ha d'afegir el gestor per l'esdeveniment keydown.
 
 Aquest gestor ha controlar les següents tecles:
 
