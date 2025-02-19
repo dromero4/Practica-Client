@@ -66,8 +66,6 @@ function enviarConfiguracio() {
 }
 
 function iniciarAturarJoc() {
-    connectWebSocket(); // 🔹 Conectamos WebSocket solo si es necesario
-
     let btn = document.getElementById("startStopBtn");
     let accio = btn.innerText === "Engegar" ? "engegar" : "aturar";
 
