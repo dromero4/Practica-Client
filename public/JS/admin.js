@@ -52,7 +52,7 @@ function enviarConfiguracio() {
     fetch("http://localhost:8081/configurar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ width, height, pisos })
+        body: JSON.stringify({ width: width, height: height, pisos: pisos })
     })
         .then(response => response.json())
         .then(data => {
