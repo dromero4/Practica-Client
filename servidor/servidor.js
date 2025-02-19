@@ -109,66 +109,10 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.set('views', path.join(__dirname, '../plantilles'));
 app.set('view engine', 'ejs');
 
-// // Ruta d'inici (http://localhost:3000)
-// app.get('/', (req, res) => {
-//     res.sendFile(path.join(__dirname, '../public', 'index.html'));
-// });
-// Ruta amb paràmetre (http://localhost:3000/hola/peter)
-// app.get('/hola/:nom', (req, res) => {
-//     res.send(`¡Hola, ${req.params.nom}!`);
-// });
-app.get('/list-files', (req, res) => {
-  fs.readdir(IMAGES_FOLDER, (err, files) => {
-    if (err) {
-      return res.status(500).json({ error: err.toString() });
-    }
-
-    // Leer cada archivo .txt y devolver un array con { filename, content }
-    const result = files.map(fileName => {
-      const fullPath = path.join(IMAGES_FOLDER, fileName);
-      const base64Content = fs.readFileSync(fullPath, 'utf8');
-      // Si en tu caso NO incluyes el prefijo en el .txt, deberías añadirlo aquí:
-      // const base64Content = 'data:image/png;base64,' + fs.readFileSync(fullPath, 'utf8');
-
-      return {
-        fileName,
-        content: base64Content
-      };
-    });
-
-    res.json(result);
-  });
-});
-app.get('/imagenesCanva/:fileName', (req, res) => {
-  const filePath = path.join(IMAGES_FOLDER, req.params.fileName);
-  if (!fs.existsSync(filePath)) {
-    return res.status(404).send('Archivo no encontrado');
-  }
-  res.sendFile(filePath);
-});
-
-app.post('/dades', (req, res) => {
-  console.log("Cuerpo de la petición recibida:", req.body); // Debug
-  let { nombre, accion, text } = req.body; // Extrae los valores
-  if (!accion || !text) {
-    return res.status(400).json({ error: "Faltan datos en la petición" });
-  }
 
 
-});
-// Para el formulario:
-app.post('/upload', (req, res) => {
-  const form = formidable();  // Sin 'new'
 
-  form.parse(req, (err, fields, files) => {
-    if (err) {
-      return res.status(500).send('Error procesando el formulario');
-    }
-    console.log('Campos:', fields);
-    console.log('Archivos:', files);
-    res.send('Archivo recibido correctamente');
-  });
-});
+
 
 app.post("/configurar", (req, res) => {
   const { width, height, pisos } = req.body;
