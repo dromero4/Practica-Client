@@ -56,8 +56,21 @@ socket.onmessage = (event) => {
             window.location.href = "index.html";
           }
           break;
-        case 'coord':
-          console.log("Posicion jugador:", data.coord.x, data.coord.y);
+        case 'IniciarJuego':
+          // Se asume que el mensaje contiene las tres secciones integradas:
+          // - data.coordJugador
+          // - data.coordMadera
+          // - data.base
+          console.log("Coordenadas del jugador:", data.coordJugador);
+          console.log("Coordenadas de la madera:", data.coordMadera);
+          console.log("Coordenadas de la base:", data.base);
+          break;
+
+
+        case 'coordMadera':
+          console.log("Posicion Madera:", data.coord.x, data.coord.y);
+          break;
+
 
 
         // Afegeix altres casos segons necessitats...
@@ -69,5 +82,6 @@ socket.onmessage = (event) => {
     console.error("Error al procesar el mensaje:", error);
   }
 };
+
 
 

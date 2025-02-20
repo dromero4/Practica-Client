@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import cors from 'cors';
 import WebSocket, { WebSocketServer } from 'ws';
-import { generarCordenadas } from './gameLogic.js';
+import {  cordenadasJuego } from './gameLogic.js';
 
 // Crear servidor WebSockets i escoltar en el port 8180
 const wsServer = new WebSocketServer({ port: 8180 });
@@ -115,7 +115,12 @@ app.set('view engine', 'ejs');
 
 
 app.post("/configurar", (req, res) => {
+  
   const { width, height, pisos } = req.body;
+
+  let configuracionJuegoCordes= cordenadasJuego(width,height);
+
+  
   if (!width || !height || !pisos) {
     return res.status(400).json({ error: "Falten paràmetres." });
   }
@@ -128,8 +133,9 @@ app.post("/configurar", (req, res) => {
     if (client.readyState === 1) { // Verifica si el cliente está abierto
       client.send(JSON.stringify({ type: "configuració", ...ultimaConfiguracio }));
       //Enviar cordenadas:
-      client.send(generarCordenadas(width,height));
-      console.log(generarCordenadas(width,height))
+
+      client.send(configuracionJuegoCordes);
+      console.log(configuracionJuegoCordes);
     }
   });
 
@@ -160,3 +166,4 @@ app.post('/joc', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Servidor responent en http://localhost:${PORT}`);
 });
+
