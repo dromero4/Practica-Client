@@ -2,11 +2,9 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
-
-import fs from 'fs';
-import formidable from 'formidable';
 import cors from 'cors';
 import WebSocket, { WebSocketServer } from 'ws';
+import { generarCordenadas } from './gameLogic.js';
 
 // Crear servidor WebSockets i escoltar en el port 8180
 const wsServer = new WebSocketServer({ port: 8180 });
@@ -17,6 +15,8 @@ function broadcast(missatge, clientExclos) {
   wsServer.clients.forEach(function each(client) {
     if (client.readyState === WebSocket.OPEN && client !== clientExclos) {
       client.send(missatge);
+     
+      
     }
   });
 }
@@ -127,6 +127,9 @@ app.post("/configurar", (req, res) => {
   wsServer.clients.forEach(client => {
     if (client.readyState === 1) { // Verifica si el cliente está abierto
       client.send(JSON.stringify({ type: "configuració", ...ultimaConfiguracio }));
+      //Enviar cordenadas:
+      client.send(generarCordenadas(width,height));
+      console.log(generarCordenadas(width,height))
     }
   });
 
@@ -145,13 +148,13 @@ app.post('/joc', (req, res) => {
   };
 });
 
-app.post('/coord', (req, res) => {
-  let { x, y } = req.body.type;
-  console.log("Coordenades rebudes:", { x, y });
+// app.post('/coord', (req, res) => {
+//   let { x, y } = req.body.type;
+//   console.log("Coordenades rebudes:", { x, y });
 
-  broadcast(JSON.stringify({ type: "coord", x, y }));
-  console.log("Coordenades enviades a tots els clients.");
-});
+//   broadcast(JSON.stringify({ type: "coord", x, y }));
+//   console.log("Coordenades enviades a tots els clients.");
+// });
 
 // Iniciar el servidor
 app.listen(PORT, () => {
