@@ -178,8 +178,6 @@ app.post("/configurar", (req, res) => {
   ultimaConfiguracio = { width, height, pisos };
   console.log("Nova configuració:", ultimaConfiguracio);
 
-
-
   // Enviar configuración a todos los clientes WebSocket
   wsServer.clients.forEach(client => {
     if (client.readyState === 1) { // Verifica si el cliente está abierto
@@ -208,7 +206,7 @@ app.post("/configurar", (req, res) => {
     }
   });
 
-  // Elimina el primer elemento si así lo deseas (según tu lógica actual)
+  // Elimina el primer elemento (es el admin. Este cliente no debe estar en el juego)
   posicionesJugadores.splice(0, 1);
 
   // Asigna equipo (booleano) a cada jugador fuera del bucle

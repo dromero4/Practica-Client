@@ -51,8 +51,6 @@ socket.onmessage = (event) => {
         miPosicion.x = data.x;
         miPosicion.y = data.y;
       }
-    
-      // 2. Volver a dibujar
       dibujar(miId, posicionesJugadores, posicionPiedras);
     }
     // console.log("Configuración del juego:", data);
