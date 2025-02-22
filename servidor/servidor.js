@@ -4,7 +4,7 @@ import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import cors from 'cors';
 import WebSocket, { WebSocketServer } from 'ws';
-import {  cordenadasJuego } from './gameLogic.js';
+import * as gameLogic from './gameLogic.js';
 
 // Crear servidor WebSockets i escoltar en el port 8180
 const wsServer = new WebSocketServer({ port: 8180 });
@@ -15,17 +15,30 @@ function broadcast(missatge, clientExclos) {
   wsServer.clients.forEach(function each(client) {
     if (client.readyState === WebSocket.OPEN && client !== clientExclos) {
       client.send(missatge);
-     
-      
+
+
     }
   });
 }
 
 let ultimaConfiguracio = null;
+let clientesConectados = new Map(); // Guardará los clientes con su ID
 // Al rebre un nou client (nova connexió)
 wsServer.on("connection", (client, peticio) => {
   let id = peticio.socket.remoteAddress + ":" + peticio.socket.remotePort;
+  clientesConectados.set(client, id); // Guardamos la referencia del cliente con su ID
+  console.log(`Cliente conectado: ${id}`);
+
+  let id2 = clientesConectados.get(client); // Obtiene el ID del cliente
+
+  if (!id2) {
+    console.warn(" ID para un cliente.",);
+  }
+
+
   client.send(JSON.stringify({ type: "benvinguda", message: `Benvingut ${id}` }));
+  client.send(JSON.stringify({ type: "idJugador", message: `${id}` }));
+
   broadcast(JSON.stringify({ type: "nou_client", message: `Nou client afegit: ${id}` }), client);
 
   console.log(`Benvingut ${id}`);
@@ -36,9 +49,48 @@ wsServer.on("connection", (client, peticio) => {
     client.send(JSON.stringify({ type: "configuració", ...ultimaConfiguracio }));
   }
 
-  client.on("message", missatge => {
-    console.log(`Missatge de ${id} --> ${missatge}`);
-    broadcast(JSON.stringify({ type: "missatge", id: id, message: missatge }));
+  client.on("message", (message) => {
+    try {
+      const data = JSON.parse(message);
+
+      if (data.type === "movimiento") {
+        let jugador = posicionesJugadores.find(j => j.id === data.id);
+        if (!jugador) return;
+
+        // Ajustar la posición del jugador según el movimiento
+        switch (data.movimiento) {
+          case "arriba":
+            jugador.y = Math.max(0, jugador.y - 10);
+            break;
+          case "abajo":
+            jugador.y = Math.min(ultimaConfiguracio.height - 20, jugador.y + 10);
+            break;
+          case "izquierda":
+            jugador.x = Math.max(0, jugador.x - 10);
+            break;
+          case "derecha":
+            jugador.x = Math.min(ultimaConfiguracio.width - 20, jugador.x + 10);
+            break;
+          default:
+            console.log("Error");
+
+        }
+
+        // Enviar las nuevas coordenadas a todos los clientes
+        broadcast(JSON.stringify({
+          type: "actualizar_posicion",
+          id: data.id,
+          x: jugador.x,
+          y: jugador.y
+        }));
+      }
+    } catch (error) {
+      console.error("Error procesando mensaje:", error);
+    }
+  });
+  client.on("close", () => {
+    clientesConectados.delete(client); // Elimina solo cuando el cliente se desconecte
+    console.log(`Cliente desconectado: ${id}`);
   });
 });
 
@@ -109,18 +161,16 @@ app.use(express.static(path.join(__dirname, '../public')));
 app.set('views', path.join(__dirname, '../plantilles'));
 app.set('view engine', 'ejs');
 
-
-
-
-
-
+// Obtener valores de juego:
+let posicionPiedras;
+let base;
+let posicionesJugadores = [];
 app.post("/configurar", (req, res) => {
-  
   const { width, height, pisos } = req.body;
 
-  let configuracionJuegoCordes= cordenadasJuego(width,height);
+  posicionPiedras = gameLogic.generarCoordenadasPiedra(width, height);
+  base = gameLogic.generarCoordenadasBase(width, height);
 
-  
   if (!width || !height || !pisos) {
     return res.status(400).json({ error: "Falten paràmetres." });
   }
@@ -128,18 +178,58 @@ app.post("/configurar", (req, res) => {
   ultimaConfiguracio = { width, height, pisos };
   console.log("Nova configuració:", ultimaConfiguracio);
 
+
+
   // Enviar configuración a todos los clientes WebSocket
   wsServer.clients.forEach(client => {
     if (client.readyState === 1) { // Verifica si el cliente está abierto
-      client.send(JSON.stringify({ type: "configuració", ...ultimaConfiguracio }));
-      //Enviar cordenadas:
+      let id = clientesConectados.get(client); // Obtiene el ID del cliente
+      let posicionJugador = gameLogic.generarCoordenadasJugador(width, height);
+      let { x, y } = posicionJugador; // Extraer x e y de la posición generada
 
-      client.send(configuracionJuegoCordes);
-      console.log(configuracionJuegoCordes);
+      // Guardamos cada jugador en el array
+      posicionesJugadores.push({ id, x, y });
+
+      client.send(JSON.stringify({
+        type: "configuració",
+        ...ultimaConfiguracio
+      }));
+
+      console.log('La id del jugador es ' + id);
+      client.send(JSON.stringify({ type: "missatge", id: id }));
+
+      client.send(JSON.stringify({
+        type: "misCoodenadas",
+        id: id,
+        posicion: posicionJugador
+      }));
+
+      console.log('Mi id y cordenadas: ' + JSON.stringify({ id, posicionJugador }));
     }
   });
 
-  res.json({ message: "Configuració rebuda!", ultimaConfiguracion: ultimaConfiguracio });
+  // Elimina el primer elemento si así lo deseas (según tu lógica actual)
+  posicionesJugadores.splice(0, 1);
+
+  // Asigna equipo (booleano) a cada jugador fuera del bucle
+  // Ejemplo: alterna true/false en función del índice
+  posicionesJugadores.forEach((jugador, index) => {
+    // Si index es par ⇒ true, si es impar ⇒ false
+    jugador.equipo = (index % 2 === 0);
+  });
+
+  // Envía a todos los clientes la información completa
+  broadcast(JSON.stringify({
+    type: "CoordenadasJuego",
+    posicionesJugadores,
+    posicionPiedras,
+    base
+  }));
+
+  res.json({
+    message: "Configuració rebuda!",
+    ultimaConfiguracio,
+  });
 });
 
 app.post('/joc', (req, res) => {
@@ -154,13 +244,6 @@ app.post('/joc', (req, res) => {
   };
 });
 
-// app.post('/coord', (req, res) => {
-//   let { x, y } = req.body.type;
-//   console.log("Coordenades rebudes:", { x, y });
-
-//   broadcast(JSON.stringify({ type: "coord", x, y }));
-//   console.log("Coordenades enviades a tots els clients.");
-// });
 
 // Iniciar el servidor
 app.listen(PORT, () => {
