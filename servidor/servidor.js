@@ -243,6 +243,11 @@ app.post('/joc', (req, res) => {
 });
 
 
+app.get('/', (req, res) => {
+
+});
+
+
 // Iniciar el servidor
 app.listen(PORT, () => {
   console.log(`Servidor responent en http://localhost:${PORT}`);
