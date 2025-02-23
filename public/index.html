@@ -1,28 +1,19 @@
-<!doctype html>
-<html lang="ca">
+<!DOCTYPE html>
+<html lang="en">
 
 <head>
-	<title>Pàgina principal</title>
-	<meta charset="UTF-8" />
-	<style>
-		* {
-			font-family: Arial, Helvetica, sans-serif;
-			font-size: 16px;
-		}
-
-		h1 {
-			font-size: 2em;
-		}
-	</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Log In</title>
+    <script defer src="JS/index.js"></script>
 </head>
 
 <body>
-	<h1>Pàgina principal</h1>
-	<p><a href="admin.html">Administrar</a></p>
-	<p><a href="player.html">Jugar</a></p>
+    <div class="container-login">
+        <form class="login-form" action="/auth/google" method="post">
+            <button class="send-login-form">Log in with Google</button>
+        </form>
+    </div>
 </body>
-
-
-</script>
 
 </html>
