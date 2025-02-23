@@ -1,10 +1,17 @@
-import express from 'express';
-import path from 'path';
+
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import cors from 'cors';
 import WebSocket, { WebSocketServer } from 'ws';
 import * as gameLogic from './gameLogic.js';
+
+import passport from 'passport';
+import express from 'express';
+import path from 'path';
+import session from 'express-session';
+import fs from 'fs';
+
+import '../public/JS/auth.js';
 
 // Crear servidor WebSockets i escoltar en el port 8180
 const wsServer = new WebSocketServer({ port: 8180 });
@@ -100,6 +107,7 @@ wsServer.on("connection", (client, peticio) => {
 import { createServer } from 'http';
 import { parse } from 'url';
 import { existsSync, readFile } from 'fs';
+import { userInfo } from 'os';
 function header(resposta, codi, cType) {
   resposta.setHeader('Access-Control-Allow-Origin', '*');
   resposta.setHeader('Access-Control-Allow-Methods', 'GET');
@@ -150,6 +158,16 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const IMAGES_FOLDER = path.join(__dirname, 'imagenesCanva');
 const app = express();
+
+const credentials = JSON.parse(fs.readFileSync('private/credentials.json'));
+
+// Configurar sessió Auth
+app.use(session({ secret: credentials.client_secret }));
+app.use(passport.initialize());
+app.use(passport.session());
+
+
+
 app.use(cors());
 const PORT = 8081;
 // Middleware per convetir JSON
@@ -242,10 +260,46 @@ app.post('/joc', (req, res) => {
   };
 });
 
+app.get('/auth/google', passport.authenticate('google', { scope: ['email', 'profile'] }));
 
-app.get('/', (req, res) => {
+app.get('/google/callback',
+  passport.authenticate('google', {
+    failureRedirect: '/auth/failure',
+    successRedirect: '/main',
+  }),
+);
 
+
+app.get('/main', isLoggedIn, (req, res) => {
+  res.send(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+          <meta charset="UTF-8">
+          <title>Main</title>
+      </head>
+      <body>
+          <h1>Benvingut, <span id="username"></span></h1>
+          
+          <p><a href="admin.html">Administrar</a></p>
+    <p><a href="player.html">Jugar</a></p>
+          <script>
+              const user = ${JSON.stringify(req.user)};
+              document.getElementById('username').innerText = user.displayName;
+          </script>
+      </body>
+      </html>
+    `);
 });
+
+
+app.get('/auth/failure', (req, res) => {
+  res.send("Something went wrong...");
+})
+
+function isLoggedIn(req, res, next) {
+  req.user ? next() : res.sendStatus(401);
+}
 
 
 // Iniciar el servidor
