@@ -5,6 +5,11 @@ function connectWebSocket() {
         socket = new WebSocket("ws://localhost:8180");
 
         socket.addEventListener("open", function () {
+            let data = JSON.stringify({
+                type: "intento_admin"
+            });
+
+            socket.send(data);
             console.log("✅ Connexió WebSocket establerta.");
         });
 
@@ -30,6 +35,11 @@ function connectWebSocket() {
                     document.getElementById("pisos").value = data.pisos;
                 } else if (data.type === "estat_joc") {
                     document.getElementById("startStopBtn").innerText = data.running ? "Aturar" : "Engegar";
+                } else if (data.type === "admin_conectado") {
+                    console.log(data.message);
+                } else if (data.type === "error_admin") {
+                    alert(data.message); // Mostrar mensaje de error al usuario
+                    window.location.href = "index.html"; // Redirigir o hacer otra acción
                 }
             } catch (error) {
                 console.warn("⚠️ Missatge no JSON:", event.data);

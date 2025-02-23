@@ -30,6 +30,9 @@ function broadcast(missatge, clientExclos) {
 
 let ultimaConfiguracio = null;
 let clientesConectados = new Map(); // Guardará los clientes con su ID
+
+let adminConectado = false;
+
 // Al rebre un nou client (nova connexió)
 wsServer.on("connection", (client, peticio) => {
   let id = peticio.socket.remoteAddress + ":" + peticio.socket.remotePort;
@@ -90,12 +93,34 @@ wsServer.on("connection", (client, peticio) => {
           x: jugador.x,
           y: jugador.y
         }));
+      } else if (data.type === "intento_admin") {
+        if (adminConectado) {
+          // Si ya hay un administrador, rechazamos la conexión
+          client.send(JSON.stringify({
+            type: "error_admin",
+            message: "Ya hay un administrador conectado. No puedes unirte."
+          }));
+          client.close(); // Cerramos la conexión del cliente
+          return;
+        } else {
+          // Si no hay un administrador, lo marcamos como conectado
+          adminConectado = true;
+          console.log("✅ Un administrador se ha conectado.");
+          client.send(JSON.stringify({
+            type: "admin_conectado",
+            message: "Eres el administrador y tienes acceso."
+          }));
+        }
       }
     } catch (error) {
       console.error("Error procesando mensaje:", error);
     }
   });
   client.on("close", () => {
+    if (adminConectado) {
+      adminConectado = false;
+      console.log("El administrador se ha desconectado.");
+    }
     clientesConectados.delete(client); // Elimina solo cuando el cliente se desconecte
     console.log(`Cliente desconectado: ${id}`);
   });
