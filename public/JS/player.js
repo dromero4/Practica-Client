@@ -45,7 +45,7 @@ socket.onmessage = (event) => {
         }
         return jugador;
       });
-    
+
       // Si es tu propio jugador, actualiza también tu variable local miPosicion
       if (data.id === miId) {
         miPosicion.x = data.x;
@@ -71,10 +71,16 @@ socket.onmessage = (event) => {
           miId = data.message;
           // console.log("Configuración del juego actualizada:", data);
           break;
-        case 'CoordenadasJuego':
+        case "CoordenadasJuego":
           posicionesJugadores = data.posicionesJugadores;
           posicionPiedras = data.posicionPiedras;
           base = data.base;
+
+          //Funcion para verificar colision de jugadores
+          // checkCollision()
+
+          //Funcion para verificar colision de piedras
+          //checkPebbleCollision()
 
           break;
         case 'misCoodenadas':
@@ -126,7 +132,7 @@ function dibujar(miId, jugadores, piedras) {
 
   // Dibujamos a los jugadores
   jugadores.forEach((jugador) => {
-    if (jugador.id ===miId) {
+    if (jugador.id === miId) {
       ctx.fillStyle = "red";      // Mi posición se mantiene en rojo
     } else if (jugador.equipo) {
       ctx.fillStyle = "orange";   // Jugadores de equipo true se pintan en amarillo
@@ -172,5 +178,5 @@ document.addEventListener("keydown", (event) => {
     type: "movimiento",
     id: miId, // Identificador del jugador
     movimiento: movimiento
-}));
+  }));
 });
