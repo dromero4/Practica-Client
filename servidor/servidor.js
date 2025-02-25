@@ -107,7 +107,7 @@ wsServer.on("connection", (client, peticio) => {
           }
         }
 
-        // Si lleva piedra, comprueba si está en la base
+        
         if (jugador.tienePiedra) {
           // Si es equipo === true, comprobamos con baseTrue;
           // Si es equipo === false, comprobamos con baseFalse
@@ -221,13 +221,13 @@ wsServer.on("connection", (client, peticio) => {
   });
   client.on("close", () => {
 
-    clientesConectados.delete(client); // Elimina solo cuando el cliente se desconecte
+    clientesConectados.delete(client); 
 
     if (administradoresConectados.has(client)) {
       console.log("⚠️ Un administrador se ha desconectado.");
       administradoresConectados.delete(client);
       if (!desconectandoAdmin) {
-        administradorConectado = false; // Solo si no fue redirigido manualmente
+        administradorConectado = false; 
       }
     }
 

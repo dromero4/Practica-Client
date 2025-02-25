@@ -10,7 +10,7 @@ let height;
 // Crear la conexión con el servidor WebSocket
 const socket = new WebSocket('ws://localhost:8180');
 
-// Enviar el mensaje para añadir jugador cuando se abra la conexión
+
 socket.onopen = () => {
   socket.send(JSON.stringify({
     action: 'afegir jugador',
@@ -49,17 +49,17 @@ socket.onmessage = (event) => {
         return jugador;
       });
 
-      // Si es tu propio jugador, actualiza también tu variable local miPosicion
+    
       if (data.id === miId && miPosicion) {
         miPosicion.x = data.x;
         miPosicion.y = data.y;
       }
 
-      // Llamar a dibujar con baseTrue, baseFalse
+     
       dibujar(miId, posicionesJugadores, posicionPiedras, baseTrue, baseFalse);
 
     } else {
-      // Gestionamos según el tipo recibido
+     
       switch (data.type) {
         case 'configuració':
           width = data.width;
@@ -74,10 +74,10 @@ socket.onmessage = (event) => {
           posicionesJugadores = data.posicionesJugadores;
           posicionPiedras = data.posicionPiedras;
 
-          // Guardar las bases
+          
           baseTrue = data.baseTrue;
           baseFalse = data.baseFalse;
-          // Aquí podrías llamar a dibujar por primera vez si quieres:
+         
           dibujar(miId, posicionesJugadores, posicionPiedras, baseTrue, baseFalse);
           break;
 
@@ -191,7 +191,7 @@ function dibujar(miId, jugadores, piedras, baseTrue, baseFalse) {
   }
 }
 
-// Escuchar pulsaciones de teclas para mover al jugador
+
 document.addEventListener("keydown", (event) => {
   let movimiento;
   switch (event.key) {
@@ -215,7 +215,7 @@ document.addEventListener("keydown", (event) => {
       return;
   }
 
-  // Enviar el mensaje de movimiento al servidor
+
   socket.send(JSON.stringify({
     type: "movimiento",
     id: miId,
