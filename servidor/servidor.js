@@ -27,6 +27,11 @@ function broadcast(missatge, clientExclos) {
     }
   });
 }
+let baseTrue = null;  // Base del equipo true (abajo derecha)
+let baseFalse = null; // Base del equipo false (arriba izquierda)
+
+
+let puntuacionEquipos = { true: 0, false: 0 };
 
 let ultimaConfiguracio = null;
 let clientesConectados = new Map(); // Guardará los clientes con su ID
@@ -63,36 +68,77 @@ wsServer.on("connection", (client, peticio) => {
     try {
       const data = JSON.parse(message);
 
-      if (data.type === "movimiento") {
-        let jugador = posicionesJugadores.find(j => j.id === data.id);
+      if (data.type === 'movimiento') {
+        const jugador = posicionesJugadores.find(j => j.id === data.id);
         if (!jugador) return;
 
-        // Ajustar la posición del jugador según el movimiento
+        // Mover al jugador
         switch (data.movimiento) {
-          case "arriba":
+          case 'arriba':
             jugador.y = Math.max(0, jugador.y - 10);
             break;
-          case "abajo":
+          case 'abajo':
             jugador.y = Math.min(ultimaConfiguracio.height - 20, jugador.y + 10);
             break;
-          case "izquierda":
+          case 'izquierda':
             jugador.x = Math.max(0, jugador.x - 10);
             break;
-          case "derecha":
+          case 'derecha':
             jugador.x = Math.min(ultimaConfiguracio.width - 20, jugador.x + 10);
             break;
-          default:
-            console.log("Error");
-
         }
 
-        // Enviar las nuevas coordenadas a todos los clientes
+        // Si NO lleva piedra, mira a ver si coge alguna
+        if (!jugador.tienePiedra) {
+          for (let i = 0; i < posicionPiedras.length; i++) {
+            const piedra = posicionPiedras[i];
+            const colisionX = jugador.x < (piedra.x + 10) && (jugador.x + 20) > piedra.x;
+            const colisionY = jugador.y < (piedra.y + 10) && (jugador.y + 20) > piedra.y;
+
+            if (colisionX && colisionY) {
+              posicionPiedras.splice(i, 1);  // Elimina la piedra
+              jugador.tienePiedra = true;    // Jugador toma la piedra
+              console.log(`Jugador ${jugador.id} COGE piedra. Ahora tienePiedra=${jugador.tienePiedra}`);
+              break;
+            }
+          }
+        }
+
+        // Si lleva piedra, comprueba si está en la base
+        if (jugador.tienePiedra) {
+          // Si es equipo === true, comprobamos con baseTrue;
+          // Si es equipo === false, comprobamos con baseFalse
+          if (jugador.equipo === true && gameLogic.estaEnBase(jugador, baseTrue)) {
+            // suelta piedra y suma punto
+            puntuacionEquipos[jugador.equipo] += 1;
+            jugador.tienePiedra = false;
+          } else if (jugador.equipo === false && gameLogic.estaEnBase(jugador, baseFalse)) {
+            puntuacionEquipos[jugador.equipo] += 1;
+            jugador.tienePiedra = false;
+          }
+        }
+
+        // Avisar a todos de la posición actualizada
         broadcast(JSON.stringify({
-          type: "actualizar_posicion",
+          type: 'actualizar_posicion',
           id: data.id,
           x: jugador.x,
           y: jugador.y
         }));
+
+        // Avisar lista de piedras y posiciones
+        broadcast(JSON.stringify({
+          type: 'CoordenadasJuego',
+          posicionesJugadores,
+          posicionPiedras,
+          baseTrue,
+          baseFalse,
+        }));
+
+
+
+
+
       } else if (data.type === "intento_admin") {
         if (adminConectado) {
           // Si ya hay un administrador, rechazamos la conexión
@@ -212,7 +258,10 @@ app.post("/configurar", (req, res) => {
   const { width, height, pisos } = req.body;
 
   posicionPiedras = gameLogic.generarCoordenadasPiedra(width, height);
-  base = gameLogic.generarCoordenadasBase(width, height);
+
+  const bases = gameLogic.generarCoordenadasBases(width, height);
+  baseTrue = bases.baseTrue;
+  baseFalse = bases.baseFalse;
 
   if (!width || !height || !pisos) {
     return res.status(400).json({ error: "Falten paràmetres." });
@@ -227,9 +276,15 @@ app.post("/configurar", (req, res) => {
       let id = clientesConectados.get(client); // Obtiene el ID del cliente
       let posicionJugador = gameLogic.generarCoordenadasJugador(width, height);
       let { x, y } = posicionJugador; // Extraer x e y de la posición generada
-
+      let equipo;
       // Guardamos cada jugador en el array
-      posicionesJugadores.push({ id, x, y });
+      posicionesJugadores.push({
+        id,
+        x,
+        y,
+        equipo,           // según tu lógica (true/false)
+        tienePiedra: false  // nuevo flag
+      });
 
       client.send(JSON.stringify({
         type: "configuració",
@@ -252,19 +307,20 @@ app.post("/configurar", (req, res) => {
   // Elimina el primer elemento (es el admin. Este cliente no debe estar en el juego)
   posicionesJugadores.splice(0, 1);
 
-  // Asigna equipo (booleano) a cada jugador fuera del bucle
-  // Ejemplo: alterna true/false en función del índice
+
   posicionesJugadores.forEach((jugador, index) => {
     // Si index es par ⇒ true, si es impar ⇒ false
     jugador.equipo = (index % 2 === 0);
   });
 
   // Envía a todos los clientes la información completa
+
   broadcast(JSON.stringify({
-    type: "CoordenadasJuego",
+    type: 'CoordenadasJuego',
     posicionesJugadores,
     posicionPiedras,
-    base
+    baseTrue,
+    baseFalse,
   }));
 
   res.json({

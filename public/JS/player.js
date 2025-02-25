@@ -1,16 +1,15 @@
-
-
 let posicionesJugadores;
 let posicionPiedras;
-let base;
+let baseTrue;
+let baseFalse;
 let miPosicion;
 let miId;
-
+let width;
+let height;
 
 // Crear la conexión con el servidor WebSocket
 const socket = new WebSocket('ws://localhost:8180');
-let width;
-let height;
+
 // Enviar el mensaje para añadir jugador cuando se abra la conexión
 socket.onopen = () => {
   socket.send(JSON.stringify({ action: 'afegir jugador' }));
@@ -22,12 +21,13 @@ socket.onclose = function (event) {
   window.location.href = 'index.html';
 };
 
-// Quan es produeix un error
+// Cuando se produce un error
 socket.onerror = function (error) {
   alert('S\'ha produït un error en la connexió WebSocket.');
   // Redirigir a index.html a la mateixa pestanya
   window.location.href = 'index.html';
 };
+
 // Recibir y procesar los mensajes enviados por el servidor
 socket.onmessage = (event) => {
   try {
@@ -47,62 +47,55 @@ socket.onmessage = (event) => {
       });
 
       // Si es tu propio jugador, actualiza también tu variable local miPosicion
-      if (data.id === miId) {
+      if (data.id === miId && miPosicion) {
         miPosicion.x = data.x;
         miPosicion.y = data.y;
       }
-      dibujar(miId, posicionesJugadores, posicionPiedras);
-    }
-    // console.log("Configuración del juego:", data);
-    let canvas = document.getElementById('gameCanvas');
-    if (typeof data === 'string') {
-      // Si és un simple missatge de text
-      // console.log('Missatge de text del servidor:', data);
+
+      // Llamar a dibujar con baseTrue, baseFalse
+      dibujar(miId, posicionesJugadores, posicionPiedras, baseTrue, baseFalse);
+
     } else {
-      // Gestionem segons el tipus rebut
+      // Gestionamos según el tipo recibido
       switch (data.type) {
         case 'configuració':
           width = data.width;
           height = data.height;
-          // console.log("Configuración del juego actualizada:", data);
           break;
+
         case 'idJugador':
-          //  alert(data.message);
           miId = data.message;
-          // console.log("Configuración del juego actualizada:", data);
           break;
+
         case "CoordenadasJuego":
           posicionesJugadores = data.posicionesJugadores;
           posicionPiedras = data.posicionPiedras;
-          base = data.base;
 
-          //Funcion para verificar colision de jugadores
-          // checkCollision()
-
-          //Funcion para verificar colision de piedras
-          //checkPebbleCollision()
-
+          // Guardar las bases
+          baseTrue = data.baseTrue;
+          baseFalse = data.baseFalse;
+          // Aquí podrías llamar a dibujar por primera vez si quieres:
+          dibujar(miId, posicionesJugadores, posicionPiedras, baseTrue, baseFalse);
           break;
+
         case 'misCoodenadas':
-          console.log("Entra aquí", data);
-          // console.log(`${data.id} posicion:`, 'x:'+data.posicion.x, 'y:'+data.posicion.y);
-          miPosicion = data;
+          // Guardamos las coordenadas en miPosicion
+          miPosicion = data.posicion;
           break;
+
         case 'estat_joc':
           if (data.running) {
+            // Ajustar el tamaño del canvas
+            const canvas = document.getElementById('gameCanvas');
             canvas.setAttribute('width', width);
             canvas.setAttribute('height', height);
-            coordenadasJuego = datosJuego(posicionesJugadores, posicionPiedras);
-            console.log('Piedras:', coordenadasJuego.piedras);
-            console.log('Jugadores:', coordenadasJuego.jugadores);
 
-            dibujar(miId, coordenadasJuego.jugadores, coordenadasJuego.piedras)
-
-          } else {
-            // window.location.href = "index.html";
-          }
+            const coordenadasJuego = datosJuego(posicionesJugadores, posicionPiedras);
+            // Dibuja con la info
+            dibujar(miId, coordenadasJuego.jugadores, coordenadasJuego.piedras, baseTrue, baseFalse);
+          } 
           break;
-        // Afegeix altres casos segons necessitats...
+
         default:
           console.log('Missatge desconegut:', data);
       }
@@ -113,47 +106,83 @@ socket.onmessage = (event) => {
 };
 
 function datosJuego(coordenadasJugadores, coordenadasPiedras) {
-  console.log('Actualizando datos del juego');
-
   return {
     jugadores: [...coordenadasJugadores],
     piedras: coordenadasPiedras
   };
 }
 
-
-function dibujar(miId, jugadores, piedras) {
-  // Obtenemos el canvas y su contexto 2D
+/**
+ * Función para dibujar todo el juego en el <canvas>:
+ *  - Bases (baseTrue, baseFalse)
+ *  - Piedras
+ *  - Jugadores
+ */
+function dibujar(miId, jugadores, piedras, baseTrue, baseFalse) {
+  // 1. Obtener el <canvas> y el contexto
   const canvas = document.getElementById("gameCanvas");
+  if (!canvas) {
+    console.error("No se encontró un <canvas id='gameCanvas'> en el HTML.");
+    return;
+  }
   const ctx = canvas.getContext("2d");
 
-  // Limpiamos el canvas antes de dibujar
+  // 2. Limpiar el área de dibujo
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-  // Dibujamos a los jugadores
-  jugadores.forEach((jugador) => {
-    if (jugador.id === miId) {
-      ctx.fillStyle = "red";      // Mi posición se mantiene en rojo
-    } else if (jugador.equipo) {
-      ctx.fillStyle = "orange";   // Jugadores de equipo true se pintan en amarillo
-    } else {
-      ctx.fillStyle = "blue";     // Los demás se pintan en azul
-    }
+  // === DIBUJAR BASE DEL EQUIPO FALSE
+  if (baseFalse && baseFalse.topLeft && baseFalse.bottomRight) {
+    const x1 = Math.min(baseFalse.topLeft.x, baseFalse.bottomRight.x);
+    const y1 = Math.min(baseFalse.topLeft.y, baseFalse.bottomRight.y);
+    const x2 = Math.max(baseFalse.topLeft.x, baseFalse.bottomRight.x);
+    const y2 = Math.max(baseFalse.topLeft.y, baseFalse.bottomRight.y);
 
-    ctx.fillRect(jugador.x, jugador.y, 20, 20);
-  });
+    ctx.fillStyle = "yellow"; 
+    ctx.fillRect(x1, y1, x2 - x1, y2 - y1);
+  }
 
-  // Dibujamos las piedras
-  piedras.forEach((piedra) => {
-    ctx.fillStyle = "black";
+  // === DIBUJAR BASE DEL EQUIPO TRUE
+  if (baseTrue && baseTrue.topLeft && baseTrue.bottomRight) {
+    const x1 = Math.min(baseTrue.topLeft.x, baseTrue.bottomRight.x);
+    const y1 = Math.min(baseTrue.topLeft.y, baseTrue.bottomRight.y);
+    const x2 = Math.max(baseTrue.topLeft.x, baseTrue.bottomRight.x);
+    const y2 = Math.max(baseTrue.topLeft.y, baseTrue.bottomRight.y);
 
-    ctx.fillRect(piedra.x, piedra.y, 10, 10);
-  });
+    ctx.fillStyle = "purple"; 
+    ctx.fillRect(x1, y1, x2 - x1, y2 - y1);
+  }
+
+  // === DIBUJAR PIEDRAS
+  if (piedras && Array.isArray(piedras)) {
+    piedras.forEach((piedra) => {
+      ctx.fillStyle = "black";
+      ctx.fillRect(piedra.x, piedra.y, 10, 10);
+    });
+  }
+
+  // === DIBUJAR JUGADORES
+  if (jugadores && Array.isArray(jugadores)) {
+    jugadores.forEach((jugador) => {
+      if (jugador.id === miId) {
+        ctx.fillStyle = "red";  // jugador local
+      } else if (jugador.equipo) {
+        ctx.fillStyle = "orange"; // equipo true
+      } else {
+        ctx.fillStyle = "blue";   // equipo false
+      }
+
+      if (jugador.tienePiedra) {
+        ctx.fillStyle = "green";  // lleva piedra
+      }
+
+      ctx.fillRect(jugador.x, jugador.y, 20, 20);
+    });
+  }
 }
 
+// Escuchar pulsaciones de teclas para mover al jugador
 document.addEventListener("keydown", (event) => {
   let movimiento;
-
   switch (event.key) {
     case "ArrowUp":
     case "w":
@@ -174,9 +203,11 @@ document.addEventListener("keydown", (event) => {
     default:
       return;
   }
+
+  // Enviar el mensaje de movimiento al servidor
   socket.send(JSON.stringify({
     type: "movimiento",
-    id: miId, // Identificador del jugador
+    id: miId,
     movimiento: movimiento
   }));
 });
