@@ -7,7 +7,7 @@ const credentials = JSON.parse(fs.readFileSync('private/credentials.json'));
 passport.use(new GoogleStrategy({
     clientID: credentials.client_id,
     clientSecret: credentials.client_secret,
-    callbackURL: "https://practica-client-qahj5bfry-davids-projects-7b10cc3e.vercel.app/google/callback"
+    callbackURL: "http://localhost:8081/google/callback"
 }, function (accessToken, refreshToken, profile, done) {
     return done(null, profile);
 }));
