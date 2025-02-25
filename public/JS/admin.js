@@ -86,7 +86,7 @@ function enviarConfiguracio() {
     }
 
 
-    fetch("https://practica-client-qahj5bfry-davids-projects-7b10cc3e.vercel.app/configurar", {
+    fetch("http://localhost:8081/configurar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ width: width, height: height, pisos: pisos })
@@ -106,7 +106,7 @@ function iniciarAturarJoc() {
     let btn = document.getElementById("startStopBtn");
     let accio = btn.innerText === "Engegar" ? "engegar" : "aturar";
 
-    fetch("https://practica-client-qahj5bfry-davids-projects-7b10cc3e.vercel.app/joc", {
+    fetch("http://localhost:8081/joc", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: accio })
