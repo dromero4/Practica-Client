@@ -36,6 +36,8 @@ let puntuacionEquipos = { true: 0, false: 0 };
 let ultimaConfiguracio = null;
 let clientesConectados = new Map(); // Guardará los clientes con su ID
 
+let administradoresConectados = []; // Lista de administradores conectados
+
 let adminConectado = false;
 
 // Al rebre un nou client (nova connexió)
@@ -152,6 +154,7 @@ wsServer.on("connection", (client, peticio) => {
           // Si no hay un administrador, lo marcamos como conectado
           adminConectado = true;
           console.log("✅ Un administrador se ha conectado.");
+
           client.send(JSON.stringify({
             type: "admin_conectado",
             message: "Eres el administrador y tienes acceso."
@@ -163,12 +166,36 @@ wsServer.on("connection", (client, peticio) => {
     }
   });
   client.on("close", () => {
-    if (adminConectado) {
-      adminConectado = false;
-      console.log("El administrador se ha desconectado.");
-    }
+
     clientesConectados.delete(client); // Elimina solo cuando el cliente se desconecte
     console.log(`Cliente desconectado: ${id}`);
+
+
+    if (esAdministrador(id)) {
+      // Si es el administrador, se elimina de la lista de administradores
+      administradoresConectados = administradoresConectados.filter(cliente => cliente.id !== id);
+
+      // Si no queda más de un administrador, redirigir a la última persona conectada
+      if (administradoresConectados.length === 1) {
+        // El último jugador que se unió es la última persona conectada
+        const ultimoJugador = jugadoresConectados[jugadoresConectados.length - 1];
+
+        // Redirigirlo a index.html
+        ultimoJugador.send(JSON.stringify({
+          type: 'redireccionar',
+          mensaje: 'Administrador desconectado, serás redirigido.',
+        }));
+
+        // Redirigir la página
+        ultimoJugador.close();
+      }
+    } else {
+      // Si no es el administrador, simplemente eliminarlo de los jugadores conectados
+      jugadoresConectados = jugadoresConectados.filter(cliente => cliente.id !== id);
+    }
+
+    // Enviar mensaje de desconexión a todos
+    broadcast({ type: 'jugador_desconectado', id: id });
   });
 });
 
@@ -388,3 +415,6 @@ app.listen(PORT, () => {
   console.log(`Servidor responent en http://localhost:${PORT}`);
 });
 
+function esAdministrador(id) {
+  return administradoresConectados.some(admin => admin.id === id);
+}

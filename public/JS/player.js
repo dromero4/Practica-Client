@@ -93,9 +93,15 @@ socket.onmessage = (event) => {
             const coordenadasJuego = datosJuego(posicionesJugadores, posicionPiedras);
             // Dibuja con la info
             dibujar(miId, coordenadasJuego.jugadores, coordenadasJuego.piedras, baseTrue, baseFalse);
-          } 
+          } else {
+            window.location.href = '/index.html';
+          }
           break;
-
+        case "jugador_desconectado":
+          posicionesJugadores = posicionesJugadores.filter(jugador => jugador.id !== data.id);
+          // Redibujar el canvas
+          dibujar(miId, posicionesJugadores, posicionPiedras, baseTrue, baseFalse);
+          break;
         default:
           console.log('Missatge desconegut:', data);
       }
@@ -137,7 +143,7 @@ function dibujar(miId, jugadores, piedras, baseTrue, baseFalse) {
     const x2 = Math.max(baseFalse.topLeft.x, baseFalse.bottomRight.x);
     const y2 = Math.max(baseFalse.topLeft.y, baseFalse.bottomRight.y);
 
-    ctx.fillStyle = "yellow"; 
+    ctx.fillStyle = "yellow";
     ctx.fillRect(x1, y1, x2 - x1, y2 - y1);
   }
 
@@ -148,7 +154,7 @@ function dibujar(miId, jugadores, piedras, baseTrue, baseFalse) {
     const x2 = Math.max(baseTrue.topLeft.x, baseTrue.bottomRight.x);
     const y2 = Math.max(baseTrue.topLeft.y, baseTrue.bottomRight.y);
 
-    ctx.fillStyle = "purple"; 
+    ctx.fillStyle = "purple";
     ctx.fillRect(x1, y1, x2 - x1, y2 - y1);
   }
 
@@ -211,3 +217,4 @@ document.addEventListener("keydown", (event) => {
     movimiento: movimiento
   }));
 });
+

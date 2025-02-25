@@ -1,10 +1,12 @@
 let socket = null; // No conectamos WebSocket de inmediato
+let isAdminConnected = false; // Variable para verificar si el admin está conectado
 
 function connectWebSocket() {
     if (!socket || socket.readyState !== WebSocket.OPEN) {
         socket = new WebSocket("ws://localhost:8180");
 
         socket.addEventListener("open", function () {
+
             let data = JSON.stringify({
                 type: "intento_admin"
             });
@@ -37,9 +39,13 @@ function connectWebSocket() {
                     document.getElementById("startStopBtn").innerText = data.running ? "Aturar" : "Engegar";
                 } else if (data.type === "admin_conectado") {
                     console.log(data.message);
+                    isAdminConnected = true; // Cuando el administrador se conecta, actualizamos la variable
                 } else if (data.type === "error_admin") {
                     alert(data.message); // Mostrar mensaje de error al usuario
                     window.location.href = "index.html"; // Redirigir o hacer otra acción
+                } else if (data.type === "admin_desconectado") {
+                    console.log("El administrador se ha desconectado.");
+                    isAdminConnected = false; // El administrador se desconectó, actualizamos la variable
                 }
             } catch (error) {
                 console.warn("⚠️ Missatge no JSON:", event.data);
@@ -98,7 +104,6 @@ document.addEventListener("DOMContentLoaded", () => {
     connectWebSocket();
     document.getElementById("startStopBtn").addEventListener("click", iniciarAturarJoc);
     document.getElementById("configurarBtn").addEventListener("click", enviarConfiguracio);
-
 
     // Crear el recuadro
     const widthInput = document.getElementById("width");
