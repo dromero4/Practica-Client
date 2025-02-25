@@ -49,13 +49,13 @@ function connectWebSocket() {
                     document.getElementById("startStopBtn").innerText = data.running ? "Aturar" : "Engegar";
 
                 } else if (data.type === 'admin_conectado') {
-                    alert(data.message);
+                    // alert(data.message);
                 } else if (data.type === 'error_admin') {
                     alert(data.message);
                     window.location.href = '/main';
                 }
             } catch (error) {
-                console.warn("⚠️ Missatge no JSON:", event.data);
+                console.warn(event.data);
             }
         });
     }
@@ -66,24 +66,40 @@ function enviarConfiguracio() {
         socket.send(JSON.stringify({ action: "administrar" }));
     }
 
-    let width = document.getElementById("width").value;
-    let height = document.getElementById("height").value;
-    let pisos = document.getElementById("pisos").value;
-
+    let width = parseInt(document.getElementById("width").value, 10);
+    let height = parseInt(document.getElementById("height").value, 10);
+    let pisos = parseInt(document.getElementById("pisos").value, 10);
+    
+    // Validamos los campos. Si no cumplen, mostramos alert y detenemos
+    if (width < 200 || width > 900) {
+        alert("L'amplada ha de ser entre 200 i 900!");
+        return;
+    }
+    if (height < 200 || height > 900) {
+        alert("L'alçada ha de ser entre 200 i 900!");
+        return;
+    }
+   
+    if (pisos < 1 || pisos > 5) {
+        alert("Els pisos han de ser entre 1 i 5!");
+        return;
+    }
+    
+   
     fetch("http://localhost:8081/configurar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ width: width, height: height, pisos: pisos })
     })
-        .then(response => response.json())
-        .then(data => {
-            alert("✅ Configuració enviada correctament!");
-            console.log("📩 Resposta del servidor:", data);
-        })
-        .catch(error => {
-            alert("❌ Error en enviar la configuració.");
-            console.error("Error:", error);
-        });
+    .then(response => response.json())
+    .then(data => {
+        alert("✅ Configuració enviada correctament!");
+        console.log("📩 Resposta del servidor:", data);
+    })
+    .catch(error => {
+        alert("❌ Error en enviar la configuració.");
+        console.error("Error:", error);
+    });
 }
 
 function iniciarAturarJoc() {

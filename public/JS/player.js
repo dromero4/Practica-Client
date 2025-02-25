@@ -131,22 +131,14 @@ function datosJuego(coordenadasJugadores, coordenadasPiedras) {
   };
 }
 
-/**
- * Función para dibujar todo el juego en el <canvas>:
- *  - Bases (baseTrue, baseFalse)
- *  - Piedras
- *  - Jugadores
- */
+
 function dibujar(miId, jugadores, piedras, baseTrue, baseFalse) {
-  // 1. Obtener el <canvas> y el contexto
+  
   const canvas = document.getElementById("gameCanvas");
-  if (!canvas) {
-    console.error("No se encontró un <canvas id='gameCanvas'> en el HTML.");
-    return;
-  }
+
   const ctx = canvas.getContext("2d");
 
-  // 2. Limpiar el área de dibujo
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   // === DIBUJAR BASE DEL EQUIPO FALSE
