@@ -69,7 +69,7 @@ function enviarConfiguracio() {
     let width = parseInt(document.getElementById("width").value, 10);
     let height = parseInt(document.getElementById("height").value, 10);
     let pisos = parseInt(document.getElementById("pisos").value, 10);
-    
+
     // Validamos los campos. Si no cumplen, mostramos alert y detenemos
     if (width < 200 || width > 900) {
         alert("L'amplada ha de ser entre 200 i 900!");
@@ -79,34 +79,34 @@ function enviarConfiguracio() {
         alert("L'alçada ha de ser entre 200 i 900!");
         return;
     }
-   
+
     if (pisos < 1 || pisos > 5) {
         alert("Els pisos han de ser entre 1 i 5!");
         return;
     }
-    
-   
-    fetch("http://localhost:8081/configurar", {
+
+
+    fetch("https://practica-client-qahj5bfry-davids-projects-7b10cc3e.vercel.app/configurar", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ width: width, height: height, pisos: pisos })
     })
-    .then(response => response.json())
-    .then(data => {
-        alert("✅ Configuració enviada correctament!");
-        console.log("📩 Resposta del servidor:", data);
-    })
-    .catch(error => {
-        alert("❌ Error en enviar la configuració.");
-        console.error("Error:", error);
-    });
+        .then(response => response.json())
+        .then(data => {
+            alert("✅ Configuració enviada correctament!");
+            console.log("📩 Resposta del servidor:", data);
+        })
+        .catch(error => {
+            alert("❌ Error en enviar la configuració.");
+            console.error("Error:", error);
+        });
 }
 
 function iniciarAturarJoc() {
     let btn = document.getElementById("startStopBtn");
     let accio = btn.innerText === "Engegar" ? "engegar" : "aturar";
 
-    fetch("http://localhost:8081/joc", {
+    fetch("https://practica-client-qahj5bfry-davids-projects-7b10cc3e.vercel.app/joc", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: accio })
