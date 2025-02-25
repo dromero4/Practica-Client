@@ -28,33 +28,33 @@ export function generarCoordenadasPiedra(width, height, cantidad = 10) {
     return coordPiedra;
 }
 
-// gameLogic.js
+
 export function generarCoordenadasBases(width, height) {
-    // Base del equipo true (abajo a la derecha)
+
     const baseTrue = {
       topLeft: {
-        x: width - 100,   // Por ejemplo, 100 px antes del borde derecho
+        x: width - 100,   
         y: height - 100
       },
       bottomRight: {
-        x: width - 1,     // Hasta el extremo de la pantalla
+        x: width - 1,     
         y: height - 1
       }
     };
   
-    // Base del equipo false (arriba a la izquierda)
+  
     const baseFalse = {
       topLeft: {
-        x: 0,  // Empieza en 0,0
+        x: 0,  
         y: 0
       },
       bottomRight: {
-        x: 100, // 100 px desde la esquina superior izquierda
+        x: 100, 
         y: 100
       }
     };
   
-    // Devuelves un objeto con ambas bases
+ 
     return { baseTrue, baseFalse };
   }
   
@@ -67,7 +67,7 @@ export function coordenadasJuego(width, height) {
     });
 }
 
-// gameLogic.js
+
 export function estaEnBase(jugador, base) {
     if (!base) {
       console.error("⚠ Error: 'base' es undefined en estaEnBase(). Revisa si las bases se han generado correctamente.");
