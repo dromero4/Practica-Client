@@ -12,7 +12,10 @@ const socket = new WebSocket('ws://localhost:8180');
 
 // Enviar el mensaje para añadir jugador cuando se abra la conexión
 socket.onopen = () => {
-  socket.send(JSON.stringify({ action: 'afegir jugador' }));
+  socket.send(JSON.stringify({
+    action: 'afegir jugador',
+    admin: false
+  }));
 };
 
 socket.onclose = function (event) {
@@ -102,6 +105,16 @@ socket.onmessage = (event) => {
           // Redibujar el canvas
           dibujar(miId, posicionesJugadores, posicionPiedras, baseTrue, baseFalse);
           break;
+        case 'benvinguda':
+          console.log(data.message);
+          break;
+        case 'admin_conectado':
+          console.log(data.message);
+          break;
+        case 'nou_client':
+          console.log(data.message);
+          break;
+
         default:
           console.log('Missatge desconegut:', data);
       }

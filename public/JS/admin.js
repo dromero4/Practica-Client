@@ -6,16 +6,25 @@ function connectWebSocket() {
         socket = new WebSocket("ws://localhost:8180");
 
         socket.addEventListener("open", function () {
-
+            isAdminConnected = true;
             let data = JSON.stringify({
-                type: "intento_admin"
+                type: "intento_admin",
+                admin: isAdminConnected
             });
 
             socket.send(data);
             console.log("✅ Connexió WebSocket establerta.");
         });
 
-        socket.addEventListener("close", function () {
+        window.addEventListener("beforeunload", function () {
+            isAdminConnected = false;
+            //ENVIAR AL SERVIDOR EL ESTADO DE LA VARIABLE
+
+            socket.send(JSON.stringify({
+                type: "intento_admin",
+                admin: isAdminConnected
+            }))
+
             alert("⚠️ Connexió tancada. Redirigint a la pàgina principal.");
             window.location.href = "index.html";
         });
@@ -35,17 +44,15 @@ function connectWebSocket() {
                     document.getElementById("width").value = data.width;
                     document.getElementById("height").value = data.height;
                     document.getElementById("pisos").value = data.pisos;
+
                 } else if (data.type === "estat_joc") {
                     document.getElementById("startStopBtn").innerText = data.running ? "Aturar" : "Engegar";
-                } else if (data.type === "admin_conectado") {
-                    console.log(data.message);
-                    isAdminConnected = true; // Cuando el administrador se conecta, actualizamos la variable
-                } else if (data.type === "error_admin") {
-                    alert(data.message); // Mostrar mensaje de error al usuario
-                    window.location.href = "index.html"; // Redirigir o hacer otra acción
-                } else if (data.type === "admin_desconectado") {
-                    console.log("El administrador se ha desconectado.");
-                    isAdminConnected = false; // El administrador se desconectó, actualizamos la variable
+
+                } else if (data.type === 'admin_conectado') {
+                    alert(data.message);
+                } else if (data.type === 'error_admin') {
+                    alert(data.message);
+                    window.location.href = '/main';
                 }
             } catch (error) {
                 console.warn("⚠️ Missatge no JSON:", event.data);

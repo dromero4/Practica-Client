@@ -36,9 +36,10 @@ let puntuacionEquipos = { true: 0, false: 0 };
 let ultimaConfiguracio = null;
 let clientesConectados = new Map(); // Guardará los clientes con su ID
 
-let administradoresConectados = []; // Lista de administradores conectados
+let administradorConectado = false;
+let desconectandoAdmin = false;
 
-let adminConectado = false;
+let administradoresConectados = new Map(); // Lista de administradores conectados
 
 // Al rebre un nou client (nova connexió)
 wsServer.on("connection", (client, peticio) => {
@@ -142,24 +143,77 @@ wsServer.on("connection", (client, peticio) => {
 
 
       } else if (data.type === "intento_admin") {
-        if (adminConectado) {
-          // Si ya hay un administrador, rechazamos la conexión
-          client.send(JSON.stringify({
-            type: "error_admin",
-            message: "Ya hay un administrador conectado. No puedes unirte."
-          }));
-          client.close(); // Cerramos la conexión del cliente
-          return;
-        } else {
-          // Si no hay un administrador, lo marcamos como conectado
-          adminConectado = true;
-          console.log("✅ Un administrador se ha conectado.");
+        const admin = data.admin;
 
-          client.send(JSON.stringify({
+        if (admin) {
+          administradoresConectados.set(client, id);
+
+          if (administradorConectado) {
+            console.log("Ya hay un administrador conectado");
+
+            client.send(JSON.stringify({
+              type: "error_admin",
+              message: "Ja hi ha un administrador connectat"
+            }));
+
+            setTimeout(() => {
+              client.close(); // Desconectar automáticamente al nuevo admin
+            }, 500);
+          } else {
+            console.log("Administrador connectat");
+
+            administradorConectado = true;
+
+            client.send(JSON.stringify({
+              type: "admin_conectado",
+              message: "Ets l'administrador"
+            }));
+
+
+            console.log("Administradores conectados: ", administradoresConectados.size);
+
+            broadcast(JSON.stringify({
+              type: "admin_conectado",
+              message: "S'ha connectat un administrador",
+            }), client);
+          }
+        } else {
+          administradorConectado = false;
+          broadcast(JSON.stringify({
             type: "admin_conectado",
-            message: "Eres el administrador y tienes acceso."
-          }));
+            message: "S'ha connectat un administrador",
+          }), client);
         }
+
+
+
+
+
+
+        //if (adminConectado) {
+        //  // Si ya hay un administrador, rechazamos la conexión
+        //  client.send(JSON.stringify({
+        //    type: "error_admin",
+        //    message: "Ya hay un administrador conectado. No puedes unirte."
+        //  }));
+        //  client.close(); // Cerramos la conexión del cliente
+        //  return;
+        //} else {
+        //  // Si no hay un administrador, lo marcamos como conectado
+        //  adminConectado = true;
+        //  console.log("✅ Un administrador se ha conectado.");
+        //
+        //  client.send(JSON.stringify({
+        //    type: "admin_conectado",
+        //    message: "Eres el administrador y tienes acceso."
+        //  }));
+        //}
+      } else if (data.type === "error_admin") {
+        desconectandoAdmin = true; // Marcamos que se está redirigiendo manualmente
+
+        setTimeout(() => {
+          client.close();
+        }, 500); // Esperamos 500ms para que el servidor procese
       }
     } catch (error) {
       console.error("Error procesando mensaje:", error);
@@ -168,34 +222,21 @@ wsServer.on("connection", (client, peticio) => {
   client.on("close", () => {
 
     clientesConectados.delete(client); // Elimina solo cuando el cliente se desconecte
+
+    if (administradoresConectados.has(client)) {
+      console.log("⚠️ Un administrador se ha desconectado.");
+      administradoresConectados.delete(client);
+      if (!desconectandoAdmin) {
+        administradorConectado = false; // Solo si no fue redirigido manualmente
+      }
+    }
+
+    console.log("Administradores conectados: ", administradoresConectados.size);
     console.log(`Cliente desconectado: ${id}`);
 
 
-    //if (esAdministrador(id)) {
-    //  // Si es el administrador, se elimina de la lista de administradores
-    //  administradoresConectados = administradoresConectados.filter(cliente => cliente.id !== id);
-    //
-    //  // Si no queda más de un administrador, redirigir a la última persona conectada
-    //  if (administradoresConectados.length === 1) {
-    //    // El último jugador que se unió es la última persona conectada
-    //    const ultimoJugador = jugadoresConectados[jugadoresConectados.length - 1];
-    //
-    //    // Redirigirlo a index.html
-    //    ultimoJugador.send(JSON.stringify({
-    //      type: 'redireccionar',
-    //      mensaje: 'Administrador desconectado, serás redirigido.',
-    //    }));
-    //
-    //    // Redirigir la página
-    //    ultimoJugador.close();
-    //  }
-    //} else {
-    //  // Si no es el administrador, simplemente eliminarlo de los jugadores conectados
-    //  jugadoresConectados = jugadoresConectados.filter(cliente => cliente.id !== id);
-    //}
-
     // Enviar mensaje de desconexión a todos
-    broadcast({ type: 'jugador_desconectado', id: id });
+    broadcast(JSON.stringify({ type: 'jugador_desconectado', id: id }));
   });
 });
 
